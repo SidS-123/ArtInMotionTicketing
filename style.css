@@ -6,30 +6,16 @@
 }
 
 body {
-    font-family: 'K2D', sans-serif;
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
-    position: relative;
-    background-color: #f4f7f3;
-}
-
-/* Place the background image in a fixed pseudo-element so we can control its opacity */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: url("mintgreenBG.avif");
+    font-family: 'Poppins', sans-serif;
+    /* Background image at 50% opacity */
+    background: 
+        linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+        url('mintgreenBG.avif');
     background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.5; /* 50% opacity */
-    z-index: -1;
-    pointer-events: none;
+    background-attachment: fixed;
+    min-height: 100vh; /* Ensures the background fills the whole screen */
+    padding: 20px;
 }
-
-}
-
 
 /* --- Header Navigation --- */
 .top-nav {
@@ -51,24 +37,42 @@ body::before {
     font-size: 1.2rem;
 }
 
-.right-icon {
-    /* No extra styling yet */
-}
-
-/* Styling for the nav icon buttons */
+/* Styling for the temporary emoji buttons so they look okay */
 .icon-btn {
     background: none;
     border: none;
-    padding: 0;
-    margin: 0 4px;
+    font-size: 1.5rem;
     cursor: pointer;
 }
 
-.nav-icon {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    display: block;
+/* --- Main Content --- */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers everything horizontally */
+}
+
+.logo-container {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.main-logo {
+    max-width: 80%; /* Ensures logo doesn't get too big on small screens */
+    height: auto;
+}
+
+/* --- The Recitals Box --- */
+.recitals-container {
+    background-color: #B4CDB9; /* The sage green color */
+    border: 3px solid black; /* The thick border */
+    border-radius: 35px; /* Rounded corners */
+    width: 100%;
+    max-width: 800px; /* Keeps the box from getting too wide on big screens */
+    min-height: 400px; /* Gives it height like the design */
+    padding: 30px;
+    text-align: center;
+    position: relative; /* Needed to help position things inside if needed */
 }
 
 .recitals-container h2 {
