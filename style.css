@@ -54,8 +54,20 @@ body::before {
 .icon-btn {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    padding: 0;
+    margin: 0 4px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Consistent icon size for nav icons */
+.nav-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    display: block;
 }
 
 /* --- Main Content --- */
