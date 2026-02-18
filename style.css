@@ -6,11 +6,28 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    /* This creates the light teal to mint gradient background */
-    background: linear-gradient(to bottom, #D4EFE8 0%, #B8E2D8 100%);
-    min-height: 100vh; /* Ensures the background fills the whole screen */
+    font-family: 'K2D', sans-serif;
+    min-height: 100vh;
+    margin: 0;
     padding: 20px;
+    position: relative;
+    background-color: #f4f7f3;
+}
+
+/* Place the background image in a fixed pseudo-element so we can control its opacity */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("mintgreenBG.avif");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.5; /* 50% opacity */
+    z-index: -1;
+    pointer-events: none;
+}
+
 }
 
 /* --- Header Navigation --- */
