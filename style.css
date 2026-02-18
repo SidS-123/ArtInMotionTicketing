@@ -56,46 +56,66 @@ body::before {
     border: none;
     padding: 0;
     margin: 0 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Consistent icon size for nav icons */
+    .top-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 30px;
+        font-size: 1.2rem;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
 .nav-icon {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    display: block;
-}
+    .left-icons {
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        flex: 1 1 0;
+        min-width: 80px;
+    }
 
-/* --- Main Content --- */
-.main-content {
-    display: flex;
-    flex-direction: column;
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1 1 0;
+        min-width: 120px;
+        gap: 2px;
+    }
+
+    .user-name {
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+    }
     align-items: center; /* Centers everything horizontally */
-}
-
-.logo-container {
+    .right-icon {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        flex: 1 1 0;
+        min-width: 80px;
+    }
     margin-bottom: 30px;
-    text-align: center;
-}
-
-.main-logo {
-    max-width: 80%; /* Ensures logo doesn't get too big on small screens */
-    height: auto;
-}
-
-/* --- The Recitals Box --- */
-.recitals-container {
+    .icon-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     background-color: #B4CDB9; /* The sage green color */
-    border: 3px solid black; /* The thick border */
-    border-radius: 35px; /* Rounded corners */
-    width: 100%;
-    max-width: 800px; /* Keeps the box from getting too wide on big screens */
-    min-height: 400px; /* Gives it height like the design */
-    padding: 30px;
+    .nav-icon {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        display: block;
+    }
     text-align: center;
     position: relative; /* Needed to help position things inside if needed */
 }
