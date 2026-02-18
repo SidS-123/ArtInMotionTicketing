@@ -30,6 +30,7 @@ body::before {
 
 }
 
+
 /* --- Header Navigation --- */
 .top-nav {
     display: flex; /* Makes items sit in a row */
@@ -50,74 +51,24 @@ body::before {
     font-size: 1.2rem;
 }
 
-/* Styling for the temporary emoji buttons so they look okay */
+.right-icon {
+    /* No extra styling yet */
+}
+
+/* Styling for the nav icon buttons */
 .icon-btn {
     background: none;
     border: none;
     padding: 0;
     margin: 0 4px;
-    .top-nav {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding-bottom: 30px;
-        font-size: 1.2rem;
-        width: 100%;
-        box-sizing: border-box;
-        margin-bottom: 10px;
-    }
+    cursor: pointer;
+}
+
 .nav-icon {
-    .left-icons {
-        display: flex;
-        align-items: flex-start;
-        gap: 24px;
-        flex: 1 1 0;
-        min-width: 80px;
-    }
-
-    .user-info {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex: 1 1 0;
-        min-width: 120px;
-        gap: 2px;
-    }
-
-    .user-name {
-        font-weight: 600;
-        font-size: 1.2rem;
-        margin-bottom: 2px;
-    }
-    align-items: center; /* Centers everything horizontally */
-    .right-icon {
-        display: flex;
-        align-items: flex-start;
-        justify-content: flex-end;
-        flex: 1 1 0;
-        min-width: 80px;
-    }
-    margin-bottom: 30px;
-    .icon-btn {
-        background: none;
-        border: none;
-        padding: 0;
-        margin: 0 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    background-color: #B4CDB9; /* The sage green color */
-    .nav-icon {
-        width: 32px;
-        height: 32px;
-        object-fit: contain;
-        display: block;
-    }
-    text-align: center;
-    position: relative; /* Needed to help position things inside if needed */
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    display: block;
 }
 
 .recitals-container h2 {
