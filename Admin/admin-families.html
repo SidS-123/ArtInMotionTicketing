@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Families</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="families.css" />
+  <link rel="stylesheet" href="../background.css" />
+</head>
+<body>
+  <div class="background-overlay"></div>
+  <main class="page-shell">
+    <header class="top-nav">
+      <a href="admin-home.html" class="nav-link">Back</a>
+      <button class="nav-link" type="button">Account</button>
+    </header>
+
+    <section class="families-panel" aria-label="Families list">
+      <div class="table-head" role="presentation">
+        <div>Family</div>
+        <div>Email</div>
+        <div>Phone</div>
+        <div>Address</div>
+        <div aria-hidden="true"></div>
+      </div>
+
+      <div class="families-list">
+        <details class="family-row" open>
+          <summary>
+            <div class="family-title">
+              <span class="chevron">⌄</span>
+              <span class="family-name">Uppara Family</span>
+            </div>
+            <span class="email">omuppara@gmail.com</span>
+            <span class="phone">2134131231</span>
+            <span class="address">123 Main St</span>
+            <div class="actions">
+              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">✎</button>
+              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">🗑</button>
+            </div>
+          </summary>
+          <ul class="children">
+            <li>Om Uppara &nbsp;&nbsp;&nbsp;&nbsp; 18 y/o</li>
+          </ul>
+        </details>
+
+        <details class="family-row">
+          <summary>
+            <div class="family-title">
+              <span class="chevron">›</span>
+              <span class="family-name">Uppara Family</span>
+            </div>
+            <span class="email">omuppara@gmail.com</span>
+            <span class="phone">2134131231</span>
+            <span class="address">123 Main St</span>
+            <div class="actions">
+              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">✎</button>
+              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">🗑</button>
+            </div>
+          </summary>
+        </details>
+      </div>
+
+      <div class="footer-actions">
+        <button class="add-family" type="button">Add Family</button>
+        <button class="send-email" type="button">Send Email</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
