@@ -1,0 +1,24 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'K2D', sans-serif;
+}
+
+body {
+  background-color: #E1FAF4; /* solid base color */
+  height: 100vh;
+  position: relative;
+}
+
+/* Background Image with 50% opacity */
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("background.webp") no-repeat center center/cover;
+  opacity: 0.5;
+  z-index: -1;
+}
