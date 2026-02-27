@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Portal | Login</title>
+<head>
+    <link rel="stylesheet" href="../background.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600&display=swap" >
+
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="role-toggle">
+                <button id="userTab" class="active" onclick="switchRole('user')">User Login</button>
+                <button id="adminTab" onclick="switchRole('admin')">Admin Login</button>
+            </div>
+
+            <form id="userForm" class="login-form">
+                <h2>User Access</h2>
+                <div class="input-group">
+                    <label for="u-name">Username</label>
+                    <input type="text" id="u-name" name="username" placeholder="Enter Username" required>
+                </div>
+                <div class="input-group">
+                    <label for="u-pass">Password</label>
+                    <input type="password" id="u-pass" name="password" placeholder="Enter Password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+
+            <form id="adminForm" class="login-form" style="display: none;">
+                <h2>Admin Access</h2>
+                <div class="input-group">
+                    <label for="a-name">Admin ID</label>
+                    <input type="text" id="a-name" name="username" placeholder="Enter Admin ID" required>
+                </div>
+                <div class="input-group">
+                    <label for="a-pass">Password</label>
+                    <input type="password" id="a-pass" name="password" placeholder="Enter Password" required>
+                </div>
+                <button type="submit" class="login-btn admin-theme">Admin Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
