@@ -6,7 +6,7 @@ body {
     .page-shell {
       position: relative;
       min-height: 100vh;
-      padding: 22px 32px 28px;
+      padding: 22px 32px 30px;
     }
 
     .top-nav {
@@ -14,17 +14,18 @@ body {
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid rgba(0, 0, 0, 0.6);
-      padding-bottom: 18px;
+      padding-bottom: 16px;
       margin-bottom: 26px;
     }
 
-    .nav-link {
-      border: 0;
-      background: transparent;
-      font: 700 38px/1.1 "K2D", sans-serif;
-      cursor: pointer;
-      color: inherit;
-    }
+.nav-link {
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+  font: 700 38px/1.1 "K2D", sans-serif;
+  cursor: pointer;
+}
 
     .families-panel {
       background: #a8c8b1;

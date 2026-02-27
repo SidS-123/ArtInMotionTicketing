@@ -1,23 +1,30 @@
-/* Main container */
-.container {
-  padding: 30px 50px;
+body {
+  min-height: 100vh;
+  color: #000;
 }
 
-/* Top bar */
-.top-bar {
+.page-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 22px 32px 30px;
+}
+
+.top-nav {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 60px;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.6);
+  padding-bottom: 16px;
+  margin-bottom: 34px;
 }
 
-.top-bar h1 {
-  font-weight: 600;
-  font-size: 28px;
-}
-
-.account {
-  font-size: 18px;
+.nav-link {
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+  font: 700 38px/1.1 "K2D", sans-serif;
+  cursor: pointer;
 }
 
 /* 2x2 Grid */
@@ -28,14 +35,6 @@
   align-items: center;
   margin-bottom: 50px;
 }
-
-/*.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 40px 60px;
-  align-items: center;
-}*/
 
 /*Separate space for the "View Logs" option*/
 .view-logs-container {
@@ -56,12 +55,12 @@
 }
 
 .left {
-    margin-left: 850px;
+  margin-left: 850px;
 }
 
 /* top, right, bottom, left*/
 .right {
-    margin-right: 850px;
+  margin-right: 850px;
 }
 
 .card:hover {
@@ -84,4 +83,18 @@
 .small {
   padding: 30px 40px;
   font-size: 24px;
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    padding: 16px;
+  }
+
+  .top-nav {
+    padding-bottom: 12px;
+  }
+
+  .nav-link {
+    font-size: 22px;
+  }
 }

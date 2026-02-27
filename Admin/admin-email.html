@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Email</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="email.css" />
+  <link rel="stylesheet" href="../background.css" />
+</head>
+<body>
+  <div class="background-overlay"></div>
+
+  <main class="page-shell">
+    <header class="top-nav">
+      <a href="admin-home.html" class="nav-link">Back</a>
+      <button class="nav-link" type="button">Account</button>
+    </header>
+
+    <section class="email-panel" aria-label="Send email panel">
+      <form class="email-form">
+        <div class="field-row">
+          <label for="to">To:</label>
+          <input id="to" name="to" type="email" required />
+        </div>
+
+        <div class="field-row">
+          <label for="subject">Subject:</label>
+          <input id="subject" name="subject" type="text" required />
+        </div>
+
+        <div class="field-row field-row-body">
+          <label for="body">Body:</label>
+          <textarea id="body" name="body" required></textarea>
+        </div>
+
+        <button class="send-email" type="submit">Send Email</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
