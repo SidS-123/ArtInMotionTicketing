@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arts in Motion - Cart</title>
+  <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+  <div class="background-overlay"></div>
+  <div class="page-shell">
+    <header class="top-nav" aria-label="Main Navigation">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <img src="home.png" alt="Home" class="nav-icon">
+      </a>
+      <a href="tickets.html" class="nav-link" aria-label="Tickets">
+        <img src="ticket.png" alt="Tickets" class="nav-icon">
+      </a>
+      <div class="user-wrap">
+        <span class="user-name">John Smith</span>
+        <a href="account.html" class="nav-link" aria-label="Account">
+          <img src="account.png" alt="Account" class="nav-icon">
+        </a>
+      </div>
+      <a href="roster.html" class="nav-link" aria-label="Roster">
+        <img src="recital.png" alt="Recitals" class="nav-icon">
+      </a>
+      <a href="cart.html" class="nav-link" aria-label="Cart">
+        <img src="cart.png" alt="Cart" class="nav-icon">
+      </a>
+    </header>
+
+    <main class="cart-main">
+      <section class="cart-grid">
+        <div class="left-column">
+          <article class="summary-card" aria-label="Cart summary">
+            <div class="line-item">
+              <span><span id="freeTicketCount">0</span>x Free Ticket</span>
+              <span id="freeTicketAmount">$0.00</span>
+            </div>
+            <div class="line-item">
+              <span><span id="regularTicketCount">0</span>x Regular Ticket</span>
+              <span id="regularTicketAmount">$0.00</span>
+            </div>
+            <div class="line-item">
+              <span><span id="luxuryTicketCount">0</span>x Luxury Ticket</span>
+              <span id="luxuryTicketAmount">$0.00</span>
+            </div>
+            <div class="line-item">
+              <span><span id="flowerCount">1</span>x Flower</span>
+              <span id="flowerAmount">$4.39</span>
+            </div>
+
+            <hr>
+
+            <div class="line-item total-line">
+              <span>Subtotal:</span>
+              <span id="subtotalAmount">$24.69</span>
+            </div>
+            <div class="line-item total-line">
+              <span>Tax:</span>
+              <span id="taxAmount">$2.30</span>
+            </div>
+
+            <hr>
+
+            <div class="line-item grand-total">
+              <span>Total Cost:</span>
+              <span id="totalAmount">$26.99</span>
+            </div>
+          </article>
+
+          <button type="button" class="checkout-btn">Continue with Payment (button)</button>
+        </div>
+
+        <aside class="products-col" aria-label="Add-on products">
+          <article class="product-card" data-product-id="flowers">
+            <div class="img-box">img</div>
+            <p class="product-name">Flowers</p>
+            <div class="controls">
+              <button type="button" class="add-btn">Add</button>
+              <div class="qty-row">
+                <button type="button" class="qty-btn" data-action="decrement">-</button>
+                <span class="qty-value">1</span>
+                <button type="button" class="qty-btn" data-action="increment">+</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-product-id="other1">
+            <div class="img-box">img</div>
+            <p class="product-name">Other Product</p>
+            <div class="controls">
+              <button type="button" class="add-btn">Add</button>
+              <div class="qty-row">
+                <button type="button" class="qty-btn" data-action="decrement">-</button>
+                <span class="qty-value">1</span>
+                <button type="button" class="qty-btn" data-action="increment">+</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-product-id="other2">
+            <div class="img-box">img</div>
+            <p class="product-name">Other Product</p>
+            <div class="controls">
+              <button type="button" class="add-btn">Add</button>
+              <div class="qty-row">
+                <button type="button" class="qty-btn" data-action="decrement">-</button>
+                <span class="qty-value">1</span>
+                <button type="button" class="qty-btn" data-action="increment">+</button>
+              </div>
+            </div>
+          </article>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const CART_TICKET_KEY = "aimCartTickets";
+    const FLOWER_PRICE = 4.39;
+    const TAX_RATE = 0.0931;
+
+    const freeTicketCountEl = document.getElementById("freeTicketCount");
+    const freeTicketAmountEl = document.getElementById("freeTicketAmount");
+    const regularTicketCountEl = document.getElementById("regularTicketCount");
+    const regularTicketAmountEl = document.getElementById("regularTicketAmount");
+    const luxuryTicketCountEl = document.getElementById("luxuryTicketCount");
+    const luxuryTicketAmountEl = document.getElementById("luxuryTicketAmount");
+    const flowerCountEl = document.getElementById("flowerCount");
+    const flowerAmountEl = document.getElementById("flowerAmount");
+    const subtotalAmountEl = document.getElementById("subtotalAmount");
+    const taxAmountEl = document.getElementById("taxAmount");
+    const totalAmountEl = document.getElementById("totalAmount");
+
+    const productState = {
+      flowers: 1,
+      other1: 1,
+      other2: 1
+    };
+
+    const ticketSummary = {
+      freeTickets: 0,
+      regularTickets: 0,
+      luxuryTickets: 0,
+      regularAmount: 0,
+      luxuryAmount: 0,
+      ticketSubtotal: 0
+    };
+
+    function toMoney(amount) {
+      return `$${amount.toFixed(2)}`;
+    }
+
+    function loadTicketSummary() {
+      const raw = localStorage.getItem(CART_TICKET_KEY);
+      if (!raw) {
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.totals) {
+          return;
+        }
+        ticketSummary.freeTickets = Number(parsed.totals.freeTickets || 0);
+        ticketSummary.regularTickets = Number(parsed.totals.regularTickets || 0);
+        ticketSummary.luxuryTickets = Number(parsed.totals.luxuryTickets || 0);
+        ticketSummary.regularAmount = Number(parsed.totals.regularAmount || 0);
+        ticketSummary.luxuryAmount = Number(parsed.totals.luxuryAmount || 0);
+        ticketSummary.ticketSubtotal = Number(parsed.totals.ticketSubtotal || 0);
+      } catch (error) {
+        // Keep defaults if cart storage is malformed.
+      }
+    }
+
+    function updateSummary() {
+      const flowerQty = productState.flowers;
+      const flowerTotal = flowerQty * FLOWER_PRICE;
+      const subtotal = ticketSummary.ticketSubtotal + flowerTotal;
+      const tax = subtotal * TAX_RATE;
+      const total = subtotal + tax;
+
+      freeTicketCountEl.textContent = String(ticketSummary.freeTickets);
+      freeTicketAmountEl.textContent = "$0.00";
+      regularTicketCountEl.textContent = String(ticketSummary.regularTickets);
+      regularTicketAmountEl.textContent = toMoney(ticketSummary.regularAmount);
+      luxuryTicketCountEl.textContent = String(ticketSummary.luxuryTickets);
+      luxuryTicketAmountEl.textContent = toMoney(ticketSummary.luxuryAmount);
+      flowerCountEl.textContent = String(flowerQty);
+      flowerAmountEl.textContent = toMoney(flowerTotal);
+      subtotalAmountEl.textContent = toMoney(subtotal);
+      taxAmountEl.textContent = toMoney(tax);
+      totalAmountEl.textContent = toMoney(total);
+    }
+
+    document.querySelectorAll(".product-card").forEach((card) => {
+      const productId = card.dataset.productId;
+      const qtyValue = card.querySelector(".qty-value");
+      const addButton = card.querySelector(".add-btn");
+      const qtyButtons = card.querySelectorAll(".qty-btn");
+
+      function syncQty() {
+        qtyValue.textContent = String(productState[productId]);
+      }
+
+      addButton.addEventListener("click", () => {
+        productState[productId] += 1;
+        syncQty();
+        updateSummary();
+      });
+
+      qtyButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "increment") {
+            productState[productId] += 1;
+          } else {
+            productState[productId] = Math.max(0, productState[productId] - 1);
+          }
+          syncQty();
+          updateSummary();
+        });
+      });
+
+      syncQty();
+    });
+
+    loadTicketSummary();
+    updateSummary();
+  </script>
+</body>
+</html>

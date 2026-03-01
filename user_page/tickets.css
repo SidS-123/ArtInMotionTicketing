@@ -1,0 +1,238 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "K2D", sans-serif;
+  background-color: #e1faf4;
+  position: relative;
+  isolation: isolate;
+  color: #111;
+}
+
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("background.webp") no-repeat center center/cover;
+  opacity: 0.5;
+  z-index: -1;
+}
+
+.page-shell {
+  width: min(1120px, 100%);
+  min-height: 768px;
+  margin: 0 auto;
+  padding: 10px 8px 18px;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.nav-icon {
+  width: clamp(46px, 5.3vw, 72px);
+  height: clamp(46px, 5.3vw, 72px);
+  object-fit: contain;
+}
+
+.user-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-size: clamp(28px, 3vw, 46px);
+  font-weight: 500;
+}
+
+.tickets-main {
+  margin-top: 12px;
+}
+
+.day-switch {
+  display: flex;
+  gap: 234px;
+  padding-left: 70px;
+  margin-bottom: 16px;
+}
+
+.day-btn {
+  border: 0;
+  border-radius: 6px;
+  background: #8fd4ec;
+  color: #111;
+  font-size: clamp(30px, 2.8vw, 44px);
+  font-weight: 500;
+  line-height: 1;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.day-btn.is-active {
+  background: #5ec0e5;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.62fr) minmax(0, 0.98fr);
+  gap: 16px;
+}
+
+.seating-card,
+.summary-card {
+  border: 4px solid #000;
+  border-radius: 58px;
+  background: #afd0b6;
+}
+
+.seating-card {
+  padding: 18px 22px 30px;
+  min-height: 560px;
+}
+
+.seating-card h1 {
+  text-align: center;
+  font-size: clamp(50px, 4.2vw, 66px);
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.stage {
+  width: min(500px, 88%);
+  height: 88px;
+  background: #95a5b4;
+  border-radius: 6px;
+  margin: 0 auto 20px;
+}
+
+.seat-grid {
+  width: min(460px, 84%);
+  margin: 0 auto 22px;
+  display: grid;
+  grid-template-columns: repeat(40, 1fr);
+  gap: 4px 3px;
+}
+
+.seat {
+  width: 100%;
+  height: 14px;
+  border-radius: 3px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.seat-grid--lux .seat {
+  background: #ff7676;
+}
+
+.seat-grid--reg .seat {
+  background: #d99d9d;
+}
+
+.seat--chosen {
+  outline: 2px solid #111;
+  transform: scale(1.05);
+}
+
+.tickets-left {
+  margin-top: 16px;
+  margin-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(24px, 2.4vw, 42px);
+  font-weight: 500;
+}
+
+.summary-card {
+  padding: 34px 24px 24px;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(28px, 2.45vw, 42px);
+  font-weight: 500;
+  margin-bottom: 34px;
+}
+
+.count-pill {
+  min-width: 44px;
+  border-radius: 7px;
+  padding: 2px 10px;
+  text-align: center;
+  background: #f3a193;
+  line-height: 1.05;
+}
+
+.count-pill.strong {
+  background: #ff6d6d;
+}
+
+.count-pill.muted {
+  background: #a4baa6;
+}
+
+.total-row {
+  margin-top: auto;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(28px, 2.45vw, 42px);
+  font-weight: 500;
+}
+
+.add-btn {
+  align-self: center;
+  display: inline-block;
+  border: 0;
+  border-radius: 8px;
+  background: #e5ae63;
+  color: #111;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: clamp(42px, 3.1vw, 52px);
+  line-height: 1;
+  padding: 12px 34px;
+}
+
+@media (max-width: 980px) {
+  .day-switch {
+    gap: 22px;
+    padding-left: 8px;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card,
+  .seating-card {
+    min-height: auto;
+  }
+}
