@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arts in Motion - Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="account.css">
+</head>
+<body>
+  <div class="background-overlay"></div>
+  <div class="page-shell">
+    <header class="top-nav" aria-label="Main Navigation">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <img src="home.png" alt="Home" class="nav-icon">
+      </a>
+      <a href="tickets.html" class="nav-link" aria-label="Tickets">
+        <img src="ticket.png" alt="Tickets" class="nav-icon">
+      </a>
+      <div class="user-wrap">
+        <span class="user-name">John Smith</span>
+        <a href="account.html" class="nav-link" aria-label="Account">
+          <img src="account.png" alt="Account" class="nav-icon">
+        </a>
+      </div>
+      <a href="roster.html" class="nav-link" aria-label="Roster">
+        <img src="recital.png" alt="Recitals" class="nav-icon">
+      </a>
+      <a href="cart.html" class="nav-link" aria-label="Cart">
+        <img src="cart.png" alt="Cart" class="nav-icon">
+      </a>
+    </header>
+
+    <main class="account-main">
+      <section class="account-grid">
+        <article class="dashboard-card">
+          <h1>Dashboard</h1>
+          <p>Parent: Parent 1</p>
+          <p>Parent: Parent 2</p>
+          <p class="settings">Settings</p>
+        </article>
+
+        <article class="profile-card">
+          <h2>Children's Profile</h2>
+
+          <div class="children-grid">
+            <section class="child-card">
+              <div class="avatar"></div>
+              <p>Jane Smith</p>
+              <p>Recital: French Ballerinas</p>
+              <button type="button" class="manage-btn">Manage Profile</button>
+            </section>
+
+            <section class="child-card">
+              <div class="avatar"></div>
+              <p>Name 2</p>
+              <p>Recital: name</p>
+              <button type="button" class="manage-btn">Manage Profile</button>
+            </section>
+          </div>
+
+          <h3>Tickets and Recitals</h3>
+          <section class="tickets-panel">
+            <p class="redeemable-line">
+              <span>Redeemable Tickets Avaliable:</span>
+              <span id="redeemableAvailable" class="redeem-pill">4</span>
+            </p>
+            <p>Recitals Booked:</p>
+            <ul>
+              <li>Recital 1</li>
+              <li>Recital 2</li>
+            </ul>
+          </section>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const REDEEMABLE_LIMIT = 4;
+    const redeemableEl = document.getElementById("redeemableAvailable");
+    const raw = localStorage.getItem("aimCartTickets");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.totals) {
+          const freeTicketsUsed = Number(parsed.totals.freeTickets || 0);
+          const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - freeTicketsUsed);
+          redeemableEl.textContent = String(redeemableRemaining);
+        }
+      } catch (error) {
+        // Ignore malformed cart data and keep default value.
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,50 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arts in Motion - Main Page</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600;700&display=swap" rel="stylesheet">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Arts in Motion</title>
+ <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;500;600;700&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="style.css">
 </head>
 <body>
+ <div class="background-overlay"></div>
+ <div class="page-shell">
+   <header class="top-nav" aria-label="Main Navigation">
+     <a href="index.html" class="nav-link" aria-label="Home">
+       <img src="home.png" alt="Home" class="nav-icon">
+     </a>
+     <a href="tickets.html" class="nav-link" aria-label="Tickets">
+       <img src="ticket.png" alt="Tickets" class="nav-icon">
+     </a>
+     <div class="user-wrap">
+       <span class="user-name">John Smith</span>
+       <a href="account.html" class="nav-link" aria-label="Account">
+         <img src="account.png" alt="Account" class="nav-icon account-icon">
+       </a>
+     </div>
+     <a href="roster.html" class="nav-link" aria-label="Roster">
+       <img src="recital.png" alt="Recitals" class="nav-icon">
+     </a>
+     <a href="cart.html" class="nav-link" aria-label="Cart">
+       <img src="cart.png" alt="Cart" class="nav-icon">
+     </a>
+   </header>
 
-    <header class="top-nav">
-        <div class="left-icons">
-            <button class="icon-btn"><img src="Home Icon.png" alt="Home" class="nav-icon"></button>
-            <button class="icon-btn"><img src="Tickets Icon.png" alt="Tickets" class="nav-icon"></button>
-        </div>
 
-        <div class="user-info">
-            <span class="user-name">John Smith</span>
-            <button class="icon-btn"><img src="Account Icon.png" alt="Account" class="nav-icon"></button>
-        </div>
+   <main>
+     <section class="logo-area" aria-label="Brand">
+       <img src="AIM Logo.png" alt="Arts in Motion School of Dance and Movement" class="aim-logo">
+     </section>
 
-        <div class="right-icon">
-            <button class="icon-btn"><img src="Cart Icon.png" alt="Cart" class="nav-icon"></button>
-        </div>
-    </header>
 
-    <main class="main-content">
-        <div class="logo-container">
-            <img src="AIM Logo.webp" alt="Arts in Motion Logo" class="main-logo">
-            </div>
+     <section class="recitals-card" aria-label="Recitals">
+       <h1>Recitals</h1>
 
-        <section class="recitals-container">
-            <h2>Recitals</h2>
-            
-            <div class="recitals-grid-header">
-                <span>Name</span>
-                <span>Date</span>
-                <span>Time</span>
-            </div>
 
-            <div class="ticket-btn-container">
-                 <button class="ticket-info-btn">Ticket Info</button>
-            </div>
-           
-            </section>
-    </main>
+       <div class="table-head">
+         <span>Name</span>
+         <span>Date</span>
+         <span>Time</span>
+         <span class="actions-head"></span>
+       </div>
 
+
+       <div class="recital-row">
+         <span>French Ballerinas</span>
+         <span>May 18, 2026</span>
+         <span>6:30 PM</span>
+         <div class="ticket-cell">
+           <button type="button" id="ticketInfoBtn" class="ticket-info-btn">Ticket Info</button>
+
+           <aside id="ticketPopup" class="ticket-popup" aria-hidden="true">
+             <button type="button" id="closePopupBtn" class="close-popup-btn" aria-label="Close ticket popup">x</button>
+             <div class="popup-row">
+               <span>Ticket Purchased</span>
+               <span>Ticket Type</span>
+             </div>
+             <div class="popup-row popup-values">
+               <span>6D, 7D, 8D</span>
+               <span>Reg</span>
+             </div>
+           </aside>
+         </div>
+       </div>
+     </section>
+   </main>
+ </div>
+
+
+ <script>
+   const ticketInfoBtn = document.getElementById('ticketInfoBtn');
+   const ticketPopup = document.getElementById('ticketPopup');
+   const closePopupBtn = document.getElementById('closePopupBtn');
+
+
+   function showPopup() {
+     ticketPopup.style.display = 'block';
+     ticketPopup.setAttribute('aria-hidden', 'false');
+   }
+
+
+   function hidePopup() {
+     ticketPopup.style.display = 'none';
+     ticketPopup.setAttribute('aria-hidden', 'true');
+   }
+
+
+   ticketInfoBtn.addEventListener('click', showPopup);
+   closePopupBtn.addEventListener('click', hidePopup);
+ </script>
 </body>
 </html>
+
+
