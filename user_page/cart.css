@@ -173,6 +173,18 @@ body {
   cursor: pointer;
 }
 
+.reset-btn {
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  font-family: inherit;
+  font-size: clamp(18px, 1.4vw, 24px);
+  line-height: 1;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
 .qty-row {
   display: flex;
   align-items: center;

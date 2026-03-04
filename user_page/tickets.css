@@ -179,6 +179,16 @@ body {
   margin-bottom: 34px;
 }
 
+.redeem-warning {
+  min-height: 56px;
+  margin-top: -14px;
+  margin-bottom: 8px;
+  color: #ab2020;
+  font-size: clamp(18px, 1.6vw, 24px);
+  line-height: 1.15;
+  font-weight: 600;
+}
+
 .count-pill {
   min-width: 44px;
   border-radius: 7px;

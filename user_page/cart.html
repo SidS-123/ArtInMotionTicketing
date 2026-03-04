@@ -48,26 +48,34 @@
               <span id="luxuryTicketAmount">$0.00</span>
             </div>
             <div class="line-item">
-              <span><span id="flowerCount">1</span>x Flower</span>
-              <span id="flowerAmount">$4.39</span>
+              <span><span id="flowerCount">0</span>x Flower</span>
+              <span id="flowerAmount">$0.00</span>
+            </div>
+            <div class="line-item">
+              <span><span id="other1Count">0</span>x Other Product 1</span>
+              <span id="other1Amount">$0.00</span>
+            </div>
+            <div class="line-item">
+              <span><span id="other2Count">0</span>x Other Product 2</span>
+              <span id="other2Amount">$0.00</span>
             </div>
 
             <hr>
 
             <div class="line-item total-line">
               <span>Subtotal:</span>
-              <span id="subtotalAmount">$24.69</span>
+              <span id="subtotalAmount">$0.00</span>
             </div>
             <div class="line-item total-line">
               <span>Tax:</span>
-              <span id="taxAmount">$2.30</span>
+              <span id="taxAmount">$0.00</span>
             </div>
 
             <hr>
 
             <div class="line-item grand-total">
               <span>Total Cost:</span>
-              <span id="totalAmount">$26.99</span>
+              <span id="totalAmount">$0.00</span>
             </div>
           </article>
 
@@ -80,9 +88,10 @@
             <p class="product-name">Flowers</p>
             <div class="controls">
               <button type="button" class="add-btn">Add</button>
+              <button type="button" class="reset-btn">Reset</button>
               <div class="qty-row">
                 <button type="button" class="qty-btn" data-action="decrement">-</button>
-                <span class="qty-value">1</span>
+                <span class="qty-value">0</span>
                 <button type="button" class="qty-btn" data-action="increment">+</button>
               </div>
             </div>
@@ -90,12 +99,13 @@
 
           <article class="product-card" data-product-id="other1">
             <div class="img-box">img</div>
-            <p class="product-name">Other Product</p>
+            <p class="product-name">Other Product 1</p>
             <div class="controls">
               <button type="button" class="add-btn">Add</button>
+              <button type="button" class="reset-btn">Reset</button>
               <div class="qty-row">
                 <button type="button" class="qty-btn" data-action="decrement">-</button>
-                <span class="qty-value">1</span>
+                <span class="qty-value">0</span>
                 <button type="button" class="qty-btn" data-action="increment">+</button>
               </div>
             </div>
@@ -103,12 +113,13 @@
 
           <article class="product-card" data-product-id="other2">
             <div class="img-box">img</div>
-            <p class="product-name">Other Product</p>
+            <p class="product-name">Other Product 2</p>
             <div class="controls">
               <button type="button" class="add-btn">Add</button>
+              <button type="button" class="reset-btn">Reset</button>
               <div class="qty-row">
                 <button type="button" class="qty-btn" data-action="decrement">-</button>
-                <span class="qty-value">1</span>
+                <span class="qty-value">0</span>
                 <button type="button" class="qty-btn" data-action="increment">+</button>
               </div>
             </div>
@@ -121,6 +132,7 @@
   <script>
     const CART_TICKET_KEY = "aimCartTickets";
     const FLOWER_PRICE = 4.39;
+    const OTHER_PRODUCT_PRICE = 10.0;
     const TAX_RATE = 0.0931;
 
     const freeTicketCountEl = document.getElementById("freeTicketCount");
@@ -131,14 +143,18 @@
     const luxuryTicketAmountEl = document.getElementById("luxuryTicketAmount");
     const flowerCountEl = document.getElementById("flowerCount");
     const flowerAmountEl = document.getElementById("flowerAmount");
+    const other1CountEl = document.getElementById("other1Count");
+    const other1AmountEl = document.getElementById("other1Amount");
+    const other2CountEl = document.getElementById("other2Count");
+    const other2AmountEl = document.getElementById("other2Amount");
     const subtotalAmountEl = document.getElementById("subtotalAmount");
     const taxAmountEl = document.getElementById("taxAmount");
     const totalAmountEl = document.getElementById("totalAmount");
 
     const productState = {
-      flowers: 1,
-      other1: 1,
-      other2: 1
+      flowers: { selectorQty: 0, inCartQty: 0 },
+      other1: { selectorQty: 0, inCartQty: 0 },
+      other2: { selectorQty: 0, inCartQty: 0 }
     };
 
     const ticketSummary = {
@@ -176,9 +192,13 @@
     }
 
     function updateSummary() {
-      const flowerQty = productState.flowers;
+      const flowerQty = productState.flowers.inCartQty;
+      const other1Qty = productState.other1.inCartQty;
+      const other2Qty = productState.other2.inCartQty;
       const flowerTotal = flowerQty * FLOWER_PRICE;
-      const subtotal = ticketSummary.ticketSubtotal + flowerTotal;
+      const other1Total = other1Qty * OTHER_PRODUCT_PRICE;
+      const other2Total = other2Qty * OTHER_PRODUCT_PRICE;
+      const subtotal = ticketSummary.ticketSubtotal + flowerTotal + other1Total + other2Total;
       const tax = subtotal * TAX_RATE;
       const total = subtotal + tax;
 
@@ -190,6 +210,10 @@
       luxuryTicketAmountEl.textContent = toMoney(ticketSummary.luxuryAmount);
       flowerCountEl.textContent = String(flowerQty);
       flowerAmountEl.textContent = toMoney(flowerTotal);
+      other1CountEl.textContent = String(other1Qty);
+      other1AmountEl.textContent = toMoney(other1Total);
+      other2CountEl.textContent = String(other2Qty);
+      other2AmountEl.textContent = toMoney(other2Total);
       subtotalAmountEl.textContent = toMoney(subtotal);
       taxAmountEl.textContent = toMoney(tax);
       totalAmountEl.textContent = toMoney(total);
@@ -199,14 +223,26 @@
       const productId = card.dataset.productId;
       const qtyValue = card.querySelector(".qty-value");
       const addButton = card.querySelector(".add-btn");
+      const resetButton = card.querySelector(".reset-btn");
       const qtyButtons = card.querySelectorAll(".qty-btn");
 
       function syncQty() {
-        qtyValue.textContent = String(productState[productId]);
+        qtyValue.textContent = String(productState[productId].selectorQty);
       }
 
       addButton.addEventListener("click", () => {
-        productState[productId] += 1;
+        const selected = productState[productId].selectorQty;
+        if (selected > 0) {
+          productState[productId].inCartQty += selected;
+          productState[productId].selectorQty = 0;
+          syncQty();
+        }
+        updateSummary();
+      });
+
+      resetButton.addEventListener("click", () => {
+        productState[productId].selectorQty = 0;
+        productState[productId].inCartQty = 0;
         syncQty();
         updateSummary();
       });
@@ -215,12 +251,11 @@
         button.addEventListener("click", () => {
           const action = button.dataset.action;
           if (action === "increment") {
-            productState[productId] += 1;
+            productState[productId].selectorQty += 1;
           } else {
-            productState[productId] = Math.max(0, productState[productId] - 1);
+            productState[productId].selectorQty = Math.max(0, productState[productId].selectorQty - 1);
           }
           syncQty();
-          updateSummary();
         });
       });
 

@@ -60,16 +60,18 @@
           </div>
           <div class="summary-row">
             <span>Regular Tickets:</span>
-            <span id="regularCount" class="count-pill">2</span>
+            <span id="regularCount" class="count-pill">0</span>
           </div>
           <div class="summary-row">
             <span>Luxury Tickets:</span>
-            <span id="luxuryCount" class="count-pill strong">2</span>
+            <span id="luxuryCount" class="count-pill strong">0</span>
           </div>
+
+          <p id="redeemableWarning" class="redeem-warning" aria-live="polite" hidden>*You have used you free redeemable tickets</p>
 
           <div class="total-row">
             <span>Total Amount:</span>
-            <span id="totalAmount">$ 20.30</span>
+            <span id="totalAmount">$ 0.00</span>
           </div>
 
           <button type="button" id="addToCartBtn" class="add-btn">Add to cart</button>
@@ -86,13 +88,14 @@
     const DEFAULT_DAY = "day2";
     const PRESELECTED = {
       day1: { reg: [], lux: [] },
-      day2: { reg: [0, 1], lux: [0, 1] }
+      day2: { reg: [], lux: [] }
     };
 
     const dayButtons = document.querySelectorAll(".day-btn");
     const seatGrids = document.querySelectorAll(".seat-grid");
     const ticketsLeftCount = document.getElementById("ticketsLeftCount");
     const redeemableCount = document.getElementById("redeemableCount");
+    const redeemableWarning = document.getElementById("redeemableWarning");
     const regularCount = document.getElementById("regularCount");
     const luxuryCount = document.getElementById("luxuryCount");
     const totalAmount = document.getElementById("totalAmount");
@@ -113,11 +116,16 @@
       const regCount = dayState.reg.size;
       const luxCount = dayState.lux.size;
       const selectedCount = regCount + luxCount;
-      const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - regCount);
-      const chargedRegularCount = Math.max(0, regCount - REDEEMABLE_LIMIT);
-      const total = chargedRegularCount * REG_PRICE + luxCount * LUX_PRICE;
+      const totalRegAcrossDays = state.day1.reg.size + state.day2.reg.size;
+      const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - totalRegAcrossDays);
+      const freeUsedAcrossDays = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
+      const chargedRegularCountAcrossDays = Math.max(0, totalRegAcrossDays - freeUsedAcrossDays);
+      const totalLuxAcrossDays = state.day1.lux.size + state.day2.lux.size;
+      const total = chargedRegularCountAcrossDays * REG_PRICE + totalLuxAcrossDays * LUX_PRICE;
+      const hasUsedAllRedeemable = redeemableRemaining === 0;
 
       redeemableCount.textContent = String(redeemableRemaining);
+      redeemableWarning.hidden = !hasUsedAllRedeemable;
       regularCount.textContent = String(regCount);
       luxuryCount.textContent = String(luxCount);
       ticketsLeftCount.textContent = String(Math.max(0, BASE_TICKETS_LEFT - selectedCount));
@@ -152,19 +160,10 @@
       const dayState = state[dayKey];
       const regCount = dayState.reg.size;
       const luxCount = dayState.lux.size;
-      const freeCount = Math.min(REDEEMABLE_LIMIT, regCount);
-      const chargedRegularCount = Math.max(0, regCount - REDEEMABLE_LIMIT);
-      const regAmount = chargedRegularCount * REG_PRICE;
-      const luxAmount = luxCount * LUX_PRICE;
-
       return {
         regCount,
         luxCount,
-        freeCount,
-        chargedRegularCount,
-        regAmount,
-        luxAmount,
-        subtotal: regAmount + luxAmount
+        subtotal: 0
       };
     }
 
@@ -206,6 +205,12 @@
     addToCartBtn.addEventListener("click", () => {
       const day1 = getDaySummary("day1");
       const day2 = getDaySummary("day2");
+      const totalRegAcrossDays = day1.regCount + day2.regCount;
+      const freeTickets = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
+      const chargedRegularCount = Math.max(0, totalRegAcrossDays - freeTickets);
+      const totalLuxAcrossDays = day1.luxCount + day2.luxCount;
+      const regularAmount = chargedRegularCount * REG_PRICE;
+      const luxuryAmount = totalLuxAcrossDays * LUX_PRICE;
       const payload = {
         savedAt: new Date().toISOString(),
         pricing: {
@@ -214,12 +219,12 @@
           redeemablePerDay: REDEEMABLE_LIMIT
         },
         totals: {
-          freeTickets: day1.freeCount + day2.freeCount,
-          regularTickets: day1.chargedRegularCount + day2.chargedRegularCount,
-          luxuryTickets: day1.luxCount + day2.luxCount,
-          regularAmount: day1.regAmount + day2.regAmount,
-          luxuryAmount: day1.luxAmount + day2.luxAmount,
-          ticketSubtotal: day1.subtotal + day2.subtotal
+          freeTickets,
+          regularTickets: chargedRegularCount,
+          luxuryTickets: totalLuxAcrossDays,
+          regularAmount,
+          luxuryAmount,
+          ticketSubtotal: regularAmount + luxuryAmount
         },
         days: {
           day1,
