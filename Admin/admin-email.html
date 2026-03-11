@@ -20,23 +20,40 @@
     <section class="email-panel" aria-label="Send email panel">
       <form class="email-form">
         <div class="field-row">
-          <label for="to">To:</label>
+          <label class="field-label" for="to">To:</label>
           <input id="to" name="to" type="email" required />
         </div>
 
         <div class="field-row">
-          <label for="subject">Subject:</label>
+          <label class="field-label" for="subject">Subject:</label>
           <input id="subject" name="subject" type="text" required />
         </div>
 
         <div class="field-row field-row-body">
-          <label for="body">Body:</label>
+          <label class="field-label" for="body">Body:</label>
           <textarea id="body" name="body" required></textarea>
         </div>
 
-        <button class="send-email" type="submit">Send Email</button>
+        <div class="field-row field-row-button">
+          <span class="field-label field-label-spacer" aria-hidden="true"></span>
+          <button class="send-email" type="submit">Send Email</button>
+        </div>
       </form>
     </section>
   </main>
+
+  <script>
+    const emailForm = document.querySelector(".email-form");
+    emailForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const to = document.querySelector("#to").value.trim();
+      const subject = document.querySelector("#subject").value.trim();
+      const body = document.querySelector("#body").value.trim();
+
+      const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
+    });
+  </script>
 </body>
 </html>

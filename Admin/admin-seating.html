@@ -18,16 +18,22 @@
     </header>
 
     <section class="layout-grid" aria-label="Admin seating management">
-      <article class="chart-card card">
-        <h1 class="chart-title">Seating Chart</h1>
-        <p class="chart-note">
-          Can click on specific seats<br />
-          for more info/options (who bought<br />
-          the seat, option to remove person<br />
-          from seat)
-        </p>
-        <div id="seating-chart" class="seat-grid-placeholder" aria-hidden="true"></div>
-      </article>
+      <div class="chart-column">
+        <article class="chart-card card">
+          <h1 class="chart-title">Seating Chart</h1>
+          <p class="chart-note">
+            Can click on specific seats<br />
+            for more info/options (who bought<br />
+            the seat, option to remove person<br />
+            from seat)
+          </p>
+          <div id="seating-chart" class="seat-grid-placeholder" aria-hidden="true"></div>
+        </article>
+
+        <a href="admin-email.html" class="chart-reminder">
+          <button type="button" class="reminder-btn">Send Reminder Email</button>
+        </a>
+      </div>
 
       <aside class="side-column">
         <article class="seat-panel card" aria-live="polite">
@@ -46,7 +52,6 @@
           </div>
         </article>
 
-        <a href="admin-email.html"><button type="button" class="reminder-btn">Send Reminder Email</button></a>
       </aside>
     </section>
   </main>

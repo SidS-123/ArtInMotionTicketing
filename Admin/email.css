@@ -39,15 +39,17 @@ body {
 
 .field-row {
   display: grid;
-  grid-template-columns: 90px 1fr;
-  align-items: center;
-  gap: 24px;
+  grid-template-columns: max-content 1fr;
+  align-items: start;
+  column-gap: 24px;
 }
 
-.field-row label {
+.field-label {
   font-size: 40px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.1;
+  white-space: nowrap;
+  padding-top: 10px;
 }
 
 .field-row input,
@@ -88,8 +90,20 @@ body {
   align-items: start;
 }
 
+.field-row-button {
+  align-items: center;
+}
+
+.field-row-button .send-email {
+  justify-self: center;
+  margin: 14px 0 0;
+}
+
+.field-label-spacer {
+  visibility: hidden;
+}
+
 .send-email {
-  margin: 14px auto 0;
   min-width: 280px;
   padding: 18px 42px;
   border: 0;
@@ -114,11 +128,11 @@ body {
   }
 
   .field-row {
-    grid-template-columns: 74px 1fr;
-    gap: 16px;
+    grid-template-columns: max-content 1fr;
+    column-gap: 16px;
   }
 
-  .field-row label {
+  .field-label {
     font-size: 32px;
   }
 
@@ -165,8 +179,9 @@ body {
     gap: 10px;
   }
 
-  .field-row label {
+  .field-label {
     font-size: 24px;
+    padding-top: 0;
   }
 
   .field-row input,
@@ -189,5 +204,9 @@ body {
     min-width: 0;
     font-size: 30px;
     padding: 16px 22px;
+  }
+
+  .field-row-button .send-email {
+    justify-self: stretch;
   }
 }
