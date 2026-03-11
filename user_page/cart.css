@@ -25,10 +25,11 @@ body {
 }
 
 .page-shell {
-  width: min(1120px, 100%);
-  min-height: 768px;
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 10px 8px 18px;
+  padding: 10px 3vw 18px;
 }
 
 .top-nav {
@@ -49,6 +50,12 @@ body {
   width: clamp(46px, 5.3vw, 72px);
   height: clamp(46px, 5.3vw, 72px);
   object-fit: contain;
+  transition: transform 0.2s ease;
+  transform-origin: center;
+}
+
+.nav-link.is-active .nav-icon {
+  transform: scale(1.2);
 }
 
 .user-wrap {
@@ -120,6 +127,20 @@ body {
   font-size: clamp(34px, 2.9vw, 50px);
   line-height: 1.2;
   padding: 14px 16px;
+}
+
+.reset-tickets-btn {
+  width: min(260px, 100%);
+  margin: 12px 0 0 28px;
+  border: 2px solid #111;
+  border-radius: 16px;
+  background: #f2f2f2;
+  color: #111;
+  font-family: inherit;
+  font-size: clamp(22px, 1.9vw, 34px);
+  line-height: 1.2;
+  padding: 10px 16px;
+  cursor: pointer;
 }
 
 .products-col {

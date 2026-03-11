@@ -26,7 +26,7 @@
       <a href="roster.html" class="nav-link" aria-label="Roster">
         <img src="recital.png" alt="Recitals" class="nav-icon">
       </a>
-      <a href="cart.html" class="nav-link" aria-label="Cart">
+      <a href="cart.html" class="nav-link is-active" aria-label="Cart" aria-current="page">
         <img src="cart.png" alt="Cart" class="nav-icon">
       </a>
     </header>
@@ -80,6 +80,7 @@
           </article>
 
           <button type="button" class="checkout-btn">Continue with Payment (button)</button>
+          <button type="button" id="resetTicketsBtn" class="reset-tickets-btn">Reset tickets</button>
         </div>
 
         <aside class="products-col" aria-label="Add-on products">
@@ -150,6 +151,7 @@
     const subtotalAmountEl = document.getElementById("subtotalAmount");
     const taxAmountEl = document.getElementById("taxAmount");
     const totalAmountEl = document.getElementById("totalAmount");
+    const resetTicketsBtn = document.getElementById("resetTicketsBtn");
 
     const productState = {
       flowers: { selectorQty: 0, inCartQty: 0 },
@@ -219,6 +221,17 @@
       totalAmountEl.textContent = toMoney(total);
     }
 
+    function resetTickets() {
+      ticketSummary.freeTickets = 0;
+      ticketSummary.regularTickets = 0;
+      ticketSummary.luxuryTickets = 0;
+      ticketSummary.regularAmount = 0;
+      ticketSummary.luxuryAmount = 0;
+      ticketSummary.ticketSubtotal = 0;
+      localStorage.removeItem(CART_TICKET_KEY);
+      updateSummary();
+    }
+
     document.querySelectorAll(".product-card").forEach((card) => {
       const productId = card.dataset.productId;
       const qtyValue = card.querySelector(".qty-value");
@@ -264,6 +277,7 @@
 
     loadTicketSummary();
     updateSummary();
+    resetTicketsBtn.addEventListener("click", resetTickets);
   </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 # Art In Motion – User Page Progress Handoff
 
-**Last updated:** February 27, 2026  
-**Project root:** `/Users/3044860/ArtInMotionTicketing`
+**Last updated:** March 11, 2026  
+**Project root:** `/Users/3044860/Desktop/ArtInMotionTicketing`
 
 ---
 
@@ -16,13 +16,25 @@
   - Popup shown when **Ticket Info** is clicked
   - Popup closed using the close button
 - Ran a visual comparison pass against a generated local preview image and applied a refinement pass
+- Expanded all user pages to full width/height layout (`page-shell` now uses full width and `min-height: 100vh`)
+- Added active-page icon scaling for the nav (current page icon is larger)
+- Added a cart “Reset tickets” button that clears ticket totals from local storage
 
 ---
 
 ## Files Created / Updated
 
 - `user_page/index.html` (created, then refined)
-- `user_page/style.css` (created, then refined)
+- `user_page/style.css` (created, then refined, now full-width + active icon scaling)
+- `user_page/subpage.css` (full-width + active icon scaling)
+- `user_page/account.css` (full-width + active icon scaling)
+- `user_page/tickets.css` (full-width + active icon scaling)
+- `user_page/cart.css` (full-width + active icon scaling, reset button styling)
+- `user_page/roster.css` (full-width + active icon scaling)
+- `user_page/account.html` (active nav icon set)
+- `user_page/tickets.html` (active nav icon set)
+- `user_page/cart.html` (active nav icon set, reset button + logic)
+- `user_page/roster.html` (active nav icon set)
 - `user_page/AI_PROGRESS.md` (this handoff file)
 
 ---
@@ -57,6 +69,18 @@
 - Popup size and placement refined
 - Close button styled as a circular bordered control to match mockup intent
 - Removed stray/invalid legacy block (`.background-overlay`) that was previously embedded in the media query
+- `page-shell` now spans full width with `min-height: 100vh`
+- Added `.nav-link.is-active .nav-icon` scale-up for current page
+
+---
+### `user_page/cart.html`
+
+- Added a “Reset tickets” button under the bill
+- Added JS to clear ticket totals from local storage and refresh the summary
+
+### `user_page/cart.css`
+
+- Styled the reset button to align with the existing checkout controls
 
 ---
 
@@ -92,8 +116,4 @@ The following issues were identified before refinement and addressed in code:
 
 - Add exact recital row content under headers once approved
 - Extract popup JS into a separate script file if desired
-- Build remaining pages:
-  - Tickets Page
-  - Cart Page
-  - Account Page  
-  Reusing the same nav and layout system
+- Continue visual polish using the `Examples/` folder as reference

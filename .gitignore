@@ -1,0 +1,11 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.local
+.env.*
+login_page/supabase.config.js
+
+# OS files
+.DS_Store
