@@ -30,10 +30,13 @@ body {
 /* 2x2 Grid */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px 60px;
-  align-items: center;
-  margin-bottom: 50px;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: clamp(18px, 4vw, 48px);
+  align-items: stretch;
+  justify-items: stretch;
+  margin: 0 auto 50px;
+  max-width: 1000px;
+  width: 100%;
 }
 
 /*Separate space for the "View Logs" option*/
@@ -46,21 +49,20 @@ body {
 .card {
   border: 3px solid black;
   border-radius: 30px;
-  padding: 120px 60px;
-  font-size: 32px;
+  padding: clamp(40px, 7vw, 120px) clamp(24px, 6vw, 70px);
+  font-size: clamp(22px, 2.6vw, 34px);
   font-weight: 600;
   text-align: center;
   cursor: pointer;
   transition: transform 0.2s ease;
+  width: 100%;
+  height: 100%;
 }
 
-.left {
-  margin-left: 850px;
-}
-
-/* top, right, bottom, left*/
-.right {
-  margin-right: 850px;
+.grid a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 .card:hover {
@@ -96,5 +98,14 @@ body {
 
   .nav-link {
     font-size: 22px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .card {
+    border-radius: 22px;
   }
 }
