@@ -1,20 +1,26 @@
 function switchRole(role) {
     const userForm = document.getElementById('userForm');
     const adminForm = document.getElementById('adminForm');
+    const signupForm = document.getElementById('signupForm');
     const userTab = document.getElementById('userTab');
     const adminTab = document.getElementById('adminTab');
+    const signupTab = document.getElementById('signupTab');
 
-    if (role === 'admin') {
-        userForm.style.display = 'none';
-        adminForm.style.display = 'block';
-        adminTab.classList.add('active');
-        userTab.classList.remove('active');
-    } else {
-        adminForm.style.display = 'none';
-        userForm.style.display = 'block';
-        userTab.classList.add('active');
-        adminTab.classList.remove('active');
-    }
+    const forms = { user: userForm, admin: adminForm, signup: signupForm };
+    const tabs = { user: userTab, admin: adminTab, signup: signupTab };
+
+    Object.values(forms).forEach((form) => {
+        if (form) form.style.display = 'none';
+    });
+    Object.values(tabs).forEach((tab) => {
+        if (tab) tab.classList.remove('active');
+    });
+
+    const targetForm = forms[role] || userForm;
+    const targetTab = tabs[role] || userTab;
+
+    if (targetForm) targetForm.style.display = 'block';
+    if (targetTab) targetTab.classList.add('active');
 }
 
 const appConfig = window.APP_LOGIN_CONFIG || {};
@@ -27,12 +33,17 @@ const supabaseClient = (window.supabase && supabaseUrl && supabaseAnonKey)
     : null;
 
 const roleValue = (appConfig.userRoleValue || 'user').toLowerCase();
+const adminRoleValue = (appConfig.adminRoleValue || 'admin').toLowerCase();
 const userRedirectPath = appConfig.userRedirectPath || '../user_page/index.html';
+const demoRedirectPath = appConfig.demoRedirectPath || 'demo.html';
+const adminRedirectPath = appConfig.adminRedirectPath || demoRedirectPath;
 
 const tableNames = {
     users: appConfig.usersTable || 'users',
     userSession: appConfig.userSessionTable || 'usersession',
-    auditLog: appConfig.auditLogTable || 'auditlog'
+    auditLog: appConfig.auditLogTable || 'auditlog',
+    familyAccount: appConfig.familyAccountTable || 'familyaccount',
+    usersAuthTable: appConfig.usersAuthTable || 'users'
 };
 
 const columnCandidates = {
@@ -61,6 +72,14 @@ const columnCandidates = {
         reason: appConfig.auditReasonColumns || ['reason', 'message', 'details', 'description'],
         occurredAt: appConfig.auditOccurredAtColumns || ['occurred_at', 'event_at', 'created_at', 'timestamp'],
         sessionId: appConfig.auditSessionIdColumns || ['session_id', 'usersession_id', 'sessionid']
+    },
+    family: {
+        username: appConfig.familyUsernameColumns || ['email', 'username', 'user_name', 'login', 'family_name', 'primary_phone'],
+        password: appConfig.familyPasswordColumns || ['password', 'pass', 'password_hash', 'pin', 'primary_phone']
+    },
+    usersAuth: {
+        email: appConfig.usersAuthEmailColumns || ['email', 'useremail', 'username'],
+        password: appConfig.usersAuthPasswordColumns || ['password_hash', 'password', 'pass']
     }
 };
 
@@ -102,6 +121,71 @@ async function authenticateUser(email, password) {
     if (error) throw new Error(error.message);
     if (!data.user) throw new Error('No authenticated user returned.');
     return data.user;
+}
+
+async function authenticateUsersTable(identifier, password, requiredRole = '') {
+    if (!supabaseClient) {
+        throw new Error('Supabase is not configured. Add keys in login_page/supabase.config.js');
+    }
+
+    const table = tableNames.usersAuthTable;
+
+    const { data: sampleRows, error: sampleError } = await supabaseClient
+        .from(table)
+        .select('*')
+        .limit(20);
+
+    if (sampleError) {
+        throw new Error(`Unable to query ${table}: ${sampleError.message}`);
+    }
+
+    const rows = Array.isArray(sampleRows) ? sampleRows : [];
+    const sampleRow = rows[0] || null;
+
+    if (!sampleRow) {
+        throw new Error('No users found.');
+    }
+
+    const emailCol = findColumnName(sampleRow, columnCandidates.usersAuth.email);
+    const passwordCol = findColumnName(sampleRow, columnCandidates.usersAuth.password);
+    const roleCol = findColumnName(sampleRow, columnCandidates.users.role);
+
+    if (!emailCol || !passwordCol) {
+        throw new Error('User login columns not found. Configure APP_LOGIN_CONFIG usersAuthEmailColumns/usersAuthPasswordColumns.');
+    }
+    if (requiredRole && !roleCol) {
+        throw new Error('User role column not found. Configure APP_LOGIN_CONFIG usersRoleColumns.');
+    }
+
+    let query = supabaseClient
+        .from(table)
+        .select('*')
+        .eq(emailCol, identifier);
+
+    if (requiredRole && roleCol) {
+        query = query.eq(roleCol, requiredRole);
+    }
+
+    const { data: matchRows, error: matchError } = await query.limit(1);
+
+    if (matchError) {
+        throw new Error(`Unable to read ${table}: ${matchError.message}`);
+    }
+
+    const matched = Array.isArray(matchRows) ? matchRows[0] : null;
+    if (requiredRole && roleCol) {
+        const matchedRole = normalize(matched[roleCol]);
+        if (matchedRole !== normalize(requiredRole)) {
+            throw new Error('This account is not authorized for admin login.');
+        }
+    }
+
+    const storedPassword = matched[passwordCol];
+    if (String(storedPassword ?? '') !== String(password)) {
+        throw new Error('Invalid email or password.');
+    }
+
+    return matched;
 }
 
 async function getAppUser(authUserId, email) {
@@ -342,44 +426,16 @@ async function handleUserLoginSubmit(e) {
     const submitButton = form.querySelector('button[type="submit"]');
     setButtonLoading(submitButton, true, 'Signing In...');
 
-    const usernameInput = form.querySelector('input[name="username"]');
+    const usernameInput = form.querySelector('input[name="email"]');
     const passwordInput = form.querySelector('input[name="password"]');
     const email = String(usernameInput.value || '').trim();
     const password = String(passwordInput.value || '');
 
     try {
-        const authUser = await authenticateUser(email, password);
-        const appUser = await getAppUser(authUser.id, email);
-        const sessionRow = await createUserSession(appUser);
-        await updateUserLastLogin(appUser);
-
-        const sessionId = getSessionId(sessionRow);
-        await writeAuditLog({
-            eventType: 'login_success',
-            userId: appUser.idValue,
-            userIdentifier: email,
-            reason: null,
-            sessionId
-        });
-
-        await finalizeLoginRoute(roleValue);
+        await authenticateUsersTable(email, password, '');
+        window.location.href = demoRedirectPath;
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Login failed.';
-        try {
-            await writeAuditLog({
-                eventType: 'login_failed',
-                userId: null,
-                userIdentifier: email,
-                reason: message,
-                sessionId: null
-            });
-        } catch (_) {
-            // Keep UI response if audit write itself fails due RLS/constraints.
-        }
-
-        if (supabaseClient) {
-            await supabaseClient.auth.signOut().catch(() => {});
-        }
         alert(message);
     } finally {
         userState.isSubmitting = false;
@@ -388,10 +444,27 @@ async function handleUserLoginSubmit(e) {
 }
 
 function handleAdminSubmit(e) {
-    // Admin flow intentionally unchanged per scope boundary.
     e.preventDefault();
-    console.log('Admin login attempted.');
-    alert('Admin login logic would trigger here.');
+    const form = e.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true, 'Signing In...');
+
+    const usernameInput = form.querySelector('input[name="username"]');
+    const passwordInput = form.querySelector('input[name="password"]');
+    const username = String(usernameInput.value || '').trim();
+    const password = String(passwordInput.value || '');
+
+    authenticateUsersTable(username, password, adminRoleValue)
+        .then(() => {
+            window.location.href = adminRedirectPath;
+        })
+        .catch((err) => {
+            const message = err instanceof Error ? err.message : 'Login failed.';
+            alert(message);
+        })
+        .finally(() => {
+            setButtonLoading(submitButton, false, 'Signing In...');
+        });
 }
 
 function initializeSessionLifecycleHooks() {

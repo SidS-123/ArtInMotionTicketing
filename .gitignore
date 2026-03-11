@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.local
 .env.*
+login_page/supabase.config.js
 
 # OS files
 .DS_Store

@@ -1,50 +1,19 @@
-/* Layout */
 body {
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.login-card {
+.signup-card {
     background: rgba(255, 255, 255, 0.95);
     padding: 2.5rem;
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 400px;
-}
-
-/* Toggle Switcher */
-.role-toggle {
-    display: flex;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid #eee;
-}
-
-.role-toggle button {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-weight: 600;
-    color: #888;
-    transition: 0.3s;
-}
-
-.role-toggle button.active {
-    color: #2c3e50;
-    border-bottom: 3px solid #2c3e50;
-}
-
-/* Forms */
-.login-form h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    font-size: 1.2rem;
 }
 
 .signup-form h2 {
@@ -64,14 +33,7 @@ body {
     color: #666;
 }
 
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
+.input-group input,
 .input-group select {
     width: 100%;
     padding: 12px;
@@ -81,28 +43,11 @@ body {
     background-color: #fff;
 }
 
-/* Buttons */
-.login-btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #2c3e50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.login-btn:hover {
-    background-color: #1a252f;
-}
-
 .signup-btn {
     width: 100%;
     padding: 12px;
     background-color: #2c3e50;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 4px;
     font-weight: bold;
@@ -117,10 +62,6 @@ body {
 .signup-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
-}
-
-.admin-theme {
-    background-color: #4a4a4a; /* Slightly different tone for Admin */
 }
 
 .form-message {
