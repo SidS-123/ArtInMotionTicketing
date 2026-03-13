@@ -173,6 +173,9 @@ async function authenticateUsersTable(identifier, password, requiredRole = '') {
     }
 
     const matched = Array.isArray(matchRows) ? matchRows[0] : null;
+    if (!matched) {
+        throw new Error('Invalid email or password.');
+    }
     if (requiredRole && roleCol) {
         const matchedRole = normalize(matched[roleCol]);
         if (matchedRole !== normalize(requiredRole)) {
