@@ -1,6 +1,6 @@
 # Art In Motion – User Page Progress Handoff
 
-**Last updated:** March 11, 2026  
+**Last updated:** March 13, 2026  
 **Project root:** `/Users/3044860/Desktop/ArtInMotionTicketing`
 
 ---
@@ -19,6 +19,7 @@
 - Expanded all user pages to full width/height layout (`page-shell` now uses full width and `min-height: 100vh`)
 - Added active-page icon scaling for the nav (current page icon is larger)
 - Added a cart “Reset tickets” button that clears ticket totals from local storage
+- Added a Sign out button in the account dashboard and styled it red
 
 ---
 
@@ -28,6 +29,7 @@
 - `user_page/style.css` (created, then refined, now full-width + active icon scaling)
 - `user_page/subpage.css` (full-width + active icon scaling)
 - `user_page/account.css` (full-width + active icon scaling)
+- `user_page/account.css` (signout button styling)
 - `user_page/tickets.css` (full-width + active icon scaling)
 - `user_page/cart.css` (full-width + active icon scaling, reset button styling)
 - `user_page/roster.css` (full-width + active icon scaling)
@@ -81,6 +83,15 @@
 ### `user_page/cart.css`
 
 - Styled the reset button to align with the existing checkout controls
+
+---
+### `user_page/account.html`
+
+- Added a Sign out button in the dashboard area
+
+### `user_page/account.css`
+
+- Styled the Sign out button (red) to match the UI
 
 ---
 
