@@ -435,8 +435,7 @@ async function handleUserLoginSubmit(e) {
         await authenticateUsersTable(email, password, '');
         await finalizeLoginRoute(roleValue);
     } catch (err) {
-        const message = err instanceof Error ? err.message : 'Login failed.';
-        alert(message);
+        alert('Username or password incorrect');
     } finally {
         userState.isSubmitting = false;
         setButtonLoading(submitButton, false, 'Signing In...');
@@ -459,8 +458,7 @@ function handleAdminSubmit(e) {
             window.location.href = adminRedirectPath;
         })
         .catch((err) => {
-            const message = err instanceof Error ? err.message : 'Login failed.';
-            alert(message);
+            alert('Username or password incorrect');
         })
         .finally(() => {
             setButtonLoading(submitButton, false, 'Signing In...');
