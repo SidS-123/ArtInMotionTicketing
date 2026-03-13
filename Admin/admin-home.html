@@ -27,7 +27,7 @@
 
       <a href="admin-seating.html"><div class="card green left">Manage<br>Event</div></a>
       <a href="admin-families.html"><div class="card blue right">Manage<br>Families</div></a>
-      <div class="card yellow left">Create<br>Event</div>
+      <button class="card yellow left" type="button" id="open-create-event">Create<br>Event</button>
       <div class="card green right">Sales and<br>Stripe</div>
 
     </div>
@@ -37,6 +37,46 @@
     </div>
 
   </main>
+
+  <div class="modal-overlay" id="create-event-modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-event-title">
+      <h2 class="modal-title" id="create-event-title">Warning</h2>
+      <p class="modal-body">Warning: This will delete your existing event and create a new one. Are you sure you want to continue?</p>
+      <div class="modal-actions">
+        <button class="modal-button secondary" type="button" id="cancel-create-event">Cancel</button>
+        <a class="modal-button primary" href="admin-seating.html">Create Event</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const openCreateEvent = document.getElementById("open-create-event");
+    const createEventModal = document.getElementById("create-event-modal");
+    const cancelCreateEvent = document.getElementById("cancel-create-event");
+
+    const openModal = () => {
+      createEventModal.classList.add("is-open");
+      createEventModal.setAttribute("aria-hidden", "false");
+    };
+
+    const closeModal = () => {
+      createEventModal.classList.remove("is-open");
+      createEventModal.setAttribute("aria-hidden", "true");
+    };
+
+    openCreateEvent.addEventListener("click", openModal);
+    cancelCreateEvent.addEventListener("click", closeModal);
+    createEventModal.addEventListener("click", (event) => {
+      if (event.target === createEventModal) {
+        closeModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && createEventModal.classList.contains("is-open")) {
+        closeModal();
+      }
+    });
+  </script>
 
 </body>
 </html>
