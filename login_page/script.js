@@ -36,7 +36,7 @@ const roleValue = (appConfig.userRoleValue || 'user').toLowerCase();
 const adminRoleValue = (appConfig.adminRoleValue || 'admin').toLowerCase();
 const userRedirectPath = appConfig.userRedirectPath || '../user_page/index.html';
 const demoRedirectPath = appConfig.demoRedirectPath || 'demo.html';
-const adminRedirectPath = appConfig.adminRedirectPath || demoRedirectPath;
+const adminRedirectPath = appConfig.adminRedirectPath || '../Admin/admin-home.html';
 
 const tableNames = {
     users: appConfig.usersTable || 'users',
@@ -433,7 +433,7 @@ async function handleUserLoginSubmit(e) {
 
     try {
         await authenticateUsersTable(email, password, '');
-        window.location.href = demoRedirectPath;
+        await finalizeLoginRoute(roleValue);
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Login failed.';
         alert(message);
