@@ -42,10 +42,30 @@
         <article class="seating-card" aria-label="Seating chart">
           <h1>Seating Chart</h1>
 
-          <div class="stage"></div>
+          <section class="seat-chart" aria-label="Seating chart image">
+            <img class="seat-chart-img" src="Examples/Seating%20Chart.png" alt="Main Floor seating chart">
 
-          <div class="seat-grid seat-grid--lux" data-seat-count="160" data-ticket-type="lux"></div>
-          <div class="seat-grid seat-grid--reg" data-seat-count="160" data-ticket-type="reg"></div>
+            <div class="seat-overlay" aria-hidden="true">
+              <div class="seat-layer seat-layer--reg" data-ticket-type="reg">
+                <div class="seat-block seat-block--wing-left" data-seat-count="18" data-cols="6"></div>
+                <div class="seat-block seat-block--main-left" data-seat-count="38" data-cols="10"></div>
+                <div class="seat-block seat-block--center" data-seat-count="38" data-cols="10"></div>
+                <div class="seat-block seat-block--main-right" data-seat-count="38" data-cols="10"></div>
+                <div class="seat-block seat-block--wing-right" data-seat-count="28" data-cols="6"></div>
+              </div>
+
+              <div class="seat-layer seat-layer--lux" data-ticket-type="lux">
+                <div class="seat-block seat-block--lux-left" data-seat-count="52" data-cols="14"></div>
+                <div class="seat-block seat-block--lux-center" data-seat-count="52" data-cols="14"></div>
+                <div class="seat-block seat-block--lux-right" data-seat-count="52" data-cols="14"></div>
+              </div>
+            </div>
+          </section>
+
+          <p class="legend" aria-label="Seat legend">
+            <span class="legend-item"><span class="legend-swatch legend-swatch--lux"></span>Luxury (Yellow)</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--reg"></span>Regular (Red)</span>
+          </p>
 
           <p class="tickets-left">
             <span>Tickets left:</span>
@@ -81,7 +101,6 @@
   </div>
 
   <script>
-    const BASE_TICKETS_LEFT = 356;
     const REDEEMABLE_LIMIT = 4;
     const REG_PRICE = 5.0;
     const LUX_PRICE = 5.15;
@@ -92,7 +111,7 @@
     };
 
     const dayButtons = document.querySelectorAll(".day-btn");
-    const seatGrids = document.querySelectorAll(".seat-grid");
+    const seatBlocks = document.querySelectorAll(".seat-block");
     const ticketsLeftCount = document.getElementById("ticketsLeftCount");
     const redeemableCount = document.getElementById("redeemableCount");
     const redeemableWarning = document.getElementById("redeemableWarning");
@@ -102,6 +121,7 @@
     const addToCartBtn = document.getElementById("addToCartBtn");
 
     let currentDay = DEFAULT_DAY;
+    let totalSeats = 0;
     const state = {
       day1: { reg: new Set(), lux: new Set() },
       day2: { reg: new Set(), lux: new Set() }
@@ -128,20 +148,17 @@
       redeemableWarning.hidden = !hasUsedAllRedeemable;
       regularCount.textContent = String(regCount);
       luxuryCount.textContent = String(luxCount);
-      ticketsLeftCount.textContent = String(Math.max(0, BASE_TICKETS_LEFT - selectedCount));
+      ticketsLeftCount.textContent = String(Math.max(0, totalSeats - selectedCount));
       totalAmount.textContent = formatMoney(total);
     }
 
     function paintSeatSelection() {
-      seatGrids.forEach((grid) => {
-        const ticketType = grid.dataset.ticketType;
-        const selectedSeats = state[currentDay][ticketType];
-
-        Array.from(grid.children).forEach((seat, seatIndex) => {
-          const isSelected = selectedSeats.has(seatIndex);
-          seat.classList.toggle("seat--chosen", isSelected);
-          seat.setAttribute("aria-pressed", String(isSelected));
-        });
+      document.querySelectorAll(".seat").forEach((seat) => {
+        const ticketType = seat.dataset.ticketType;
+        const seatIndex = Number(seat.dataset.seatIndex);
+        const isSelected = state[currentDay][ticketType].has(seatIndex);
+        seat.classList.toggle("seat--chosen", isSelected);
+        seat.setAttribute("aria-pressed", String(isSelected));
       });
     }
 
@@ -167,29 +184,41 @@
       };
     }
 
-    seatGrids.forEach((grid) => {
-      const count = Number(grid.dataset.seatCount || 0);
-      const ticketType = grid.dataset.ticketType;
+    const nextIndex = { reg: 0, lux: 0 };
+
+    seatBlocks.forEach((block) => {
+      const count = Number(block.dataset.seatCount || 0);
+      const cols = Number(block.dataset.cols || 10);
+      const ticketType = block.closest(".seat-layer").dataset.ticketType;
+      block.style.setProperty("--cols", String(cols));
 
       for (let i = 0; i < count; i += 1) {
+        const seatIndex = nextIndex[ticketType];
+        nextIndex[ticketType] += 1;
+
         const seat = document.createElement("button");
         seat.type = "button";
         seat.className = "seat";
-        seat.setAttribute("aria-label", `${ticketType.toUpperCase()} seat ${i + 1}`);
+        seat.dataset.ticketType = ticketType;
+        seat.dataset.seatIndex = String(seatIndex);
+        seat.setAttribute("aria-label", `${ticketType.toUpperCase()} seat ${seatIndex + 1}`);
         seat.setAttribute("aria-pressed", "false");
         seat.addEventListener("click", () => {
           const dayState = state[currentDay][ticketType];
-          if (dayState.has(i)) {
-            dayState.delete(i);
+          if (dayState.has(seatIndex)) {
+            dayState.delete(seatIndex);
           } else {
-            dayState.add(i);
+            dayState.add(seatIndex);
           }
           paintSeatSelection();
           updateSummary();
         });
-        grid.appendChild(seat);
+
+        block.appendChild(seat);
       }
     });
+
+    totalSeats = document.querySelectorAll(".seat").length;
 
     Object.entries(PRESELECTED).forEach(([day, groups]) => {
       groups.reg.forEach((index) => state[day].reg.add(index));
