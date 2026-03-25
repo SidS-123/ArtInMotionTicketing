@@ -43,23 +43,9 @@
           <h1>Seating Chart</h1>
 
           <section class="seat-chart" aria-label="Seating chart image">
-            <img class="seat-chart-img" src="Examples/Seating%20Chart.png" alt="Main Floor seating chart">
-
-            <div class="seat-overlay" aria-hidden="true">
-              <div class="seat-layer seat-layer--reg" data-ticket-type="reg">
-                <div class="seat-block seat-block--wing-left" data-seat-count="18" data-cols="6"></div>
-                <div class="seat-block seat-block--main-left" data-seat-count="38" data-cols="10"></div>
-                <div class="seat-block seat-block--center" data-seat-count="38" data-cols="10"></div>
-                <div class="seat-block seat-block--main-right" data-seat-count="38" data-cols="10"></div>
-                <div class="seat-block seat-block--wing-right" data-seat-count="28" data-cols="6"></div>
-              </div>
-
-              <div class="seat-layer seat-layer--lux" data-ticket-type="lux">
-                <div class="seat-block seat-block--lux-left" data-seat-count="52" data-cols="14"></div>
-                <div class="seat-block seat-block--lux-center" data-seat-count="52" data-cols="14"></div>
-                <div class="seat-block seat-block--lux-right" data-seat-count="52" data-cols="14"></div>
-              </div>
-            </div>
+            <img class="seat-chart-img" id="baseMap" src="Examples/Seating%20Chart.png" alt="Main Floor seating chart">
+            
+            <div class="seat-overlay" id="seatOverlay" aria-hidden="true"></div>
           </section>
 
           <p class="legend" aria-label="Seat legend">
@@ -69,7 +55,7 @@
 
           <p class="tickets-left">
             <span>Tickets left:</span>
-            <span id="ticketsLeftCount" class="count-pill muted">356</span>
+            <span id="ticketsLeftCount" class="count-pill muted">...</span>
           </p>
         </article>
 
@@ -105,13 +91,38 @@
     const REG_PRICE = 5.0;
     const LUX_PRICE = 5.15;
     const DEFAULT_DAY = "day2";
-    const PRESELECTED = {
-      day1: { reg: [], lux: [] },
-      day2: { reg: [], lux: [] }
-    };
 
+    // ---------------------------------------------------------
+    // 1. THE SEAT DATA (You will need to expand this list)
+    // ---------------------------------------------------------
+   const seatMapData = [
+  { id: "reg-1", type: "reg", x: 1.5, y: 19.65 },
+  { id: "reg-2", type: "reg", x: 2.81, y: 19.02 },
+  { id: "reg-3", type: "reg", x: 4.01, y: 18.39 },
+  { id: "reg-4", type: "reg", x: 5.44, y: 17.6 },
+  { id: "reg-5", type: "reg", x: 6.64, y: 16.97 },
+  { id: "reg-6", type: "reg", x: 7.95, y: 16.5 },
+  { id: "reg-7", type: "reg", x: 9.16, y: 15.87 },
+  { id: "reg-8", type: "reg", x: 10.58, y: 15.24 },
+  { id: "reg-9", type: "reg", x: 11.89, y: 14.77 },
+  { id: "reg-10", type: "reg", x: 13.09, y: 14.29 },
+  { id: "reg-11", type: "reg", x: 14.52, y: 13.82 },
+  { id: "reg-12", type: "reg", x: 17.91, y: 12.4 },
+];
+
+    // ---------------------------------------------------------
+    // 2. STATE MANAGEMENT
+    // ---------------------------------------------------------
+    const state = {
+      day1: { reg: new Set(), lux: new Set() },
+      day2: { reg: new Set(), lux: new Set() }
+    };
+    let currentDay = DEFAULT_DAY;
+    let totalSeats = seatMapData.length;
+
+    // DOM Elements
+    const seatOverlay = document.getElementById("seatOverlay");
     const dayButtons = document.querySelectorAll(".day-btn");
-    const seatBlocks = document.querySelectorAll(".seat-block");
     const ticketsLeftCount = document.getElementById("ticketsLeftCount");
     const redeemableCount = document.getElementById("redeemableCount");
     const redeemableWarning = document.getElementById("redeemableWarning");
@@ -120,27 +131,26 @@
     const totalAmount = document.getElementById("totalAmount");
     const addToCartBtn = document.getElementById("addToCartBtn");
 
-    let currentDay = DEFAULT_DAY;
-    let totalSeats = 0;
-    const state = {
-      day1: { reg: new Set(), lux: new Set() },
-      day2: { reg: new Set(), lux: new Set() }
-    };
-
+    // Formatter
     function formatMoney(amount) {
       return `$ ${amount.toFixed(2)}`;
     }
 
+    // ---------------------------------------------------------
+    // 3. CORE LOGIC
+    // ---------------------------------------------------------
     function updateSummary() {
       const dayState = state[currentDay];
       const regCount = dayState.reg.size;
       const luxCount = dayState.lux.size;
       const selectedCount = regCount + luxCount;
+      
       const totalRegAcrossDays = state.day1.reg.size + state.day2.reg.size;
       const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - totalRegAcrossDays);
       const freeUsedAcrossDays = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
       const chargedRegularCountAcrossDays = Math.max(0, totalRegAcrossDays - freeUsedAcrossDays);
       const totalLuxAcrossDays = state.day1.lux.size + state.day2.lux.size;
+      
       const total = chargedRegularCountAcrossDays * REG_PRICE + totalLuxAcrossDays * LUX_PRICE;
       const hasUsedAllRedeemable = redeemableRemaining === 0;
 
@@ -155,8 +165,8 @@
     function paintSeatSelection() {
       document.querySelectorAll(".seat").forEach((seat) => {
         const ticketType = seat.dataset.ticketType;
-        const seatIndex = Number(seat.dataset.seatIndex);
-        const isSelected = state[currentDay][ticketType].has(seatIndex);
+        const seatId = seat.dataset.seatId;
+        const isSelected = state[currentDay][ticketType].has(seatId);
         seat.classList.toggle("seat--chosen", isSelected);
         seat.setAttribute("aria-pressed", String(isSelected));
       });
@@ -173,58 +183,44 @@
       updateSummary();
     }
 
-    function getDaySummary(dayKey) {
-      const dayState = state[dayKey];
-      const regCount = dayState.reg.size;
-      const luxCount = dayState.lux.size;
-      return {
-        regCount,
-        luxCount,
-        subtotal: 0
-      };
-    }
+    // ---------------------------------------------------------
+    // 4. RENDER ENGINE (Generates the buttons onto the map)
+    // ---------------------------------------------------------
+    function renderSeats() {
+      seatOverlay.innerHTML = ""; 
 
-    const nextIndex = { reg: 0, lux: 0 };
-
-    seatBlocks.forEach((block) => {
-      const count = Number(block.dataset.seatCount || 0);
-      const cols = Number(block.dataset.cols || 10);
-      const ticketType = block.closest(".seat-layer").dataset.ticketType;
-      block.style.setProperty("--cols", String(cols));
-
-      for (let i = 0; i < count; i += 1) {
-        const seatIndex = nextIndex[ticketType];
-        nextIndex[ticketType] += 1;
-
-        const seat = document.createElement("button");
-        seat.type = "button";
-        seat.className = "seat";
-        seat.dataset.ticketType = ticketType;
-        seat.dataset.seatIndex = String(seatIndex);
-        seat.setAttribute("aria-label", `${ticketType.toUpperCase()} seat ${seatIndex + 1}`);
-        seat.setAttribute("aria-pressed", "false");
-        seat.addEventListener("click", () => {
-          const dayState = state[currentDay][ticketType];
-          if (dayState.has(seatIndex)) {
-            dayState.delete(seatIndex);
+      seatMapData.forEach(seatData => {
+        const seatBtn = document.createElement("button");
+        seatBtn.type = "button";
+        seatBtn.className = `seat seat--${seatData.type}`;
+        
+        // Exact positioning
+        seatBtn.style.left = `${seatData.x}%`;
+        seatBtn.style.top = `${seatData.y}%`;
+        
+        // Data binding
+        seatBtn.dataset.ticketType = seatData.type;
+        seatBtn.dataset.seatId = seatData.id;
+        seatBtn.setAttribute("aria-label", `${seatData.type.toUpperCase()} seat`);
+        
+        seatBtn.addEventListener("click", () => {
+          const dayState = state[currentDay][seatData.type];
+          if (dayState.has(seatData.id)) {
+            dayState.delete(seatData.id);
           } else {
-            dayState.add(seatIndex);
+            dayState.add(seatData.id);
           }
           paintSeatSelection();
           updateSummary();
         });
 
-        block.appendChild(seat);
-      }
-    });
+        seatOverlay.appendChild(seatBtn);
+      });
+    }
 
-    totalSeats = document.querySelectorAll(".seat").length;
-
-    Object.entries(PRESELECTED).forEach(([day, groups]) => {
-      groups.reg.forEach((index) => state[day].reg.add(index));
-      groups.lux.forEach((index) => state[day].lux.add(index));
-    });
-
+    // ---------------------------------------------------------
+    // 5. EVENT LISTENERS
+    // ---------------------------------------------------------
     dayButtons.forEach((button) => {
       button.addEventListener("click", () => {
         setActiveDay(button.dataset.day);
@@ -232,40 +228,103 @@
     });
 
     addToCartBtn.addEventListener("click", () => {
-      const day1 = getDaySummary("day1");
-      const day2 = getDaySummary("day2");
-      const totalRegAcrossDays = day1.regCount + day2.regCount;
-      const freeTickets = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
-      const chargedRegularCount = Math.max(0, totalRegAcrossDays - freeTickets);
-      const totalLuxAcrossDays = day1.luxCount + day2.luxCount;
-      const regularAmount = chargedRegularCount * REG_PRICE;
-      const luxuryAmount = totalLuxAcrossDays * LUX_PRICE;
-      const payload = {
-        savedAt: new Date().toISOString(),
-        pricing: {
-          regPrice: REG_PRICE,
-          luxPrice: LUX_PRICE,
-          redeemablePerDay: REDEEMABLE_LIMIT
-        },
-        totals: {
-          freeTickets,
-          regularTickets: chargedRegularCount,
-          luxuryTickets: totalLuxAcrossDays,
-          regularAmount,
-          luxuryAmount,
-          ticketSubtotal: regularAmount + luxuryAmount
-        },
-        days: {
-          day1,
-          day2
-        }
-      };
-
-      localStorage.setItem("aimCartTickets", JSON.stringify(payload));
-      window.location.href = "cart.html";
+       // Assuming you have cart logic similar to your previous file
+       alert("Ready to add to cart! See localStorage logic.");
     });
 
+    // Initialize the page
+    renderSeats();
     setActiveDay(DEFAULT_DAY);
+
+
+   // =========================================================
+    // 🚀 UPGRADED ADMIN SEAT MAPPING TOOL 
+    // =========================================================
+    const adminState = {
+      seats: [],
+      counter: 1,
+      type: "reg"
+    };
+
+    // 1. Create the UI Panel
+    const adminPanel = document.createElement('div');
+    adminPanel.style.cssText = `
+      position: fixed; bottom: 20px; right: 20px; background: #222; color: white; 
+      padding: 15px; border-radius: 8px; z-index: 9999; font-family: sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px;
+    `;
+    
+    adminPanel.innerHTML = `
+      <h3 style="margin:0; font-size:16px;">Admin Mapper</h3>
+      <div>
+        <label><input type="radio" name="seatType" value="reg" checked> Regular (Red)</label><br>
+        <label><input type="radio" name="seatType" value="lux"> Luxury (Yellow)</label>
+      </div>
+      <div style="display: flex; gap: 5px;">
+        <button id="adminUndo" style="padding: 5px; cursor: pointer;">Undo Last</button>
+        <button id="adminCopy" style="padding: 5px; background: #4CAF50; color: white; border: none; cursor: pointer;">Copy All Code</button>
+      </div>
+      <div id="adminStatus" style="font-size: 12px; color: #aaa;">Seats mapped: 0</div>
+    `;
+    document.body.appendChild(adminPanel);
+
+    // 2. Handle Settings
+    document.querySelectorAll('input[name="seatType"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        adminState.type = e.target.value;
+        adminState.counter = 1; // Reset counter for new type
+      });
+    });
+
+    // 3. Handle Clicking
+    document.getElementById('baseMap').addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+      const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+      
+      const newSeat = { id: `${adminState.type}-${adminState.counter}`, type: adminState.type, x: parseFloat(x), y: parseFloat(y) };
+      adminState.seats.push(newSeat);
+      
+      // Draw visual dot
+      const dot = document.createElement('div');
+      dot.className = 'admin-dot';
+      const dotColor = adminState.type === 'reg' ? 'blue' : 'purple';
+      dot.style.cssText = `position:absolute; width:12px; height:12px; background:${dotColor}; border-radius:50%; pointer-events:none; left:${x}%; top:${y}%; transform:translate(-50%,-50%); z-index:99; border: 2px solid white;`;
+      document.getElementById('seatOverlay').appendChild(dot);
+      
+      adminState.counter++;
+      document.getElementById('adminStatus').innerText = `Seats mapped: ${adminState.seats.length}`;
+    });
+
+    // 4. Handle Undo
+    document.getElementById('adminUndo').addEventListener('click', () => {
+      if (adminState.seats.length === 0) return;
+      adminState.seats.pop(); // Remove from array
+      if(adminState.counter > 1) adminState.counter--;
+      
+      // Remove last dot from screen
+      const dots = document.querySelectorAll('.admin-dot');
+      if (dots.length > 0) dots[dots.length - 1].remove();
+      
+      document.getElementById('adminStatus').innerText = `Seats mapped: ${adminState.seats.length}`;
+    });
+
+    // 5. Handle Copying
+    document.getElementById('adminCopy').addEventListener('click', () => {
+      // Format it perfectly for your code
+      let outputCode = "const seatMapData = [\n";
+      adminState.seats.forEach(s => {
+        outputCode += `  { id: "${s.id}", type: "${s.type}", x: ${s.x}, y: ${s.y} },\n`;
+      });
+      outputCode += "];";
+      
+      navigator.clipboard.writeText(outputCode).then(() => {
+        const btn = document.getElementById('adminCopy');
+        btn.innerText = "Copied!";
+        btn.style.background = "#2196F3";
+        setTimeout(() => { btn.innerText = "Copy All Code"; btn.style.background = "#4CAF50"; }, 2000);
+      });
+    });
   </script>
 </body>
 </html>
