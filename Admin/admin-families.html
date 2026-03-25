@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Families</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="families.css" />
+  <link rel="stylesheet" href="../background.css" />
+</head>
+<body>
+  <div class="background-overlay"></div>
+  <main class="page-shell">
+    <header class="top-nav">
+      <a href="admin-home.html" class="nav-link">Back</a>
+      <button class="nav-link" type="button">Account</button>
+    </header>
+
+    <section class="families-panel" aria-label="Families list">
+      <div class="table-head" role="presentation">
+        <div>Family</div>
+        <div>Email</div>
+        <div>Phone</div>
+        <div>Address</div>
+        <div aria-hidden="true"></div>
+      </div>
+
+      <div class="families-list">
+        <details class="family-row" open>
+          <summary>
+            <div class="family-title">
+              <span class="chevron">⌄</span>
+              <span class="family-name">Uppara Family</span>
+            </div>
+            <span class="email">omuppara@gmail.com</span>
+            <span class="phone">2134131231</span>
+            <span class="address">123 Main St</span>
+            <div class="actions">
+              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">✎</button>
+              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">🗑</button>
+            </div>
+          </summary>
+          <ul class="children">
+            <li>Om Uppara &nbsp;&nbsp;&nbsp;&nbsp; 18 y/o</li>
+          </ul>
+        </details>
+
+        <details class="family-row">
+          <summary>
+            <div class="family-title">
+              <span class="chevron">›</span>
+              <span class="family-name">Uppara Family</span>
+            </div>
+            <span class="email">omuppara@gmail.com</span>
+            <span class="phone">2134131231</span>
+            <span class="address">123 Main St</span>
+            <div class="actions">
+              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">✎</button>
+              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">🗑</button>
+            </div>
+          </summary>
+        </details>
+      </div>
+
+      <dialog class="add-family-dialog" id="add-family-dialog" aria-labelledby="add-family-title">
+        <form class="dialog-form" id="add-family-form">
+          <div class="dialog-head">
+            <h2 id="add-family-title">Add Family</h2>
+            <button class="dialog-close" type="button" aria-label="Close">×</button>
+          </div>
+          <label class="field">
+            <span>Family name</span>
+            <input name="familyName" type="text" autocomplete="organization" required />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label class="field">
+            <span>Phone number</span>
+            <input name="phone" type="tel" autocomplete="tel" required />
+          </label>
+          <label class="field">
+            <span>Address</span>
+            <input name="address" type="text" autocomplete="street-address" required />
+          </label>
+          <div class="children-fields" aria-label="Children information">
+            <h3>Children</h3>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 1 name</span>
+                <input name="childName1" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 1 age</span>
+                <input name="childAge1" type="number" min="0" max="120" />
+              </label>
+            </div>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 2 name</span>
+                <input name="childName2" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 2 age</span>
+                <input name="childAge2" type="number" min="0" max="120" />
+              </label>
+            </div>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 3 name</span>
+                <input name="childName3" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 3 age</span>
+                <input name="childAge3" type="number" min="0" max="120" />
+              </label>
+            </div>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 4 name</span>
+                <input name="childName4" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 4 age</span>
+                <input name="childAge4" type="number" min="0" max="120" />
+              </label>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button class="secondary" type="button">Cancel</button>
+            <button class="primary" type="submit">Add Family</button>
+          </div>
+        </form>
+      </dialog>
+
+      <div class="footer-actions">
+        <button class="add-family" type="button">Add Family</button>
+        <a href="admin-email.html"><button class="send-email" type="button">Send Email</button></a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const addFamilyButton = document.querySelector(".add-family");
+    const addFamilyDialog = document.getElementById("add-family-dialog");
+    const addFamilyForm = document.getElementById("add-family-form");
+    const familiesList = document.querySelector(".families-list");
+    const dialogCloseButton = addFamilyDialog.querySelector(".dialog-close");
+    const dialogCancelButton = addFamilyDialog.querySelector(".dialog-actions .secondary");
+    const firstField = addFamilyDialog.querySelector("input[name=\"familyName\"]");
+    const dialogTitle = addFamilyDialog.querySelector("#add-family-title");
+    const dialogPrimaryButton = addFamilyDialog.querySelector(".dialog-actions .primary");
+    const familyNameInput = addFamilyDialog.querySelector("input[name=\"familyName\"]");
+    const emailInput = addFamilyDialog.querySelector("input[name=\"email\"]");
+    const phoneInput = addFamilyDialog.querySelector("input[name=\"phone\"]");
+    const addressInput = addFamilyDialog.querySelector("input[name=\"address\"]");
+    const childNameInputs = Array.from(addFamilyDialog.querySelectorAll("input[name^=\"childName\"]"));
+    const childAgeInputs = Array.from(addFamilyDialog.querySelectorAll("input[name^=\"childAge\"]"));
+
+    let editingDetails = null;
+
+    const updateChevron = (details) => {
+      const chevron = details.querySelector(".chevron");
+      if (chevron) {
+        chevron.textContent = details.open ? "⌄" : "›";
+      }
+    };
+
+    document.querySelectorAll("details.family-row").forEach((details) => {
+      updateChevron(details);
+      details.addEventListener("toggle", () => updateChevron(details));
+    });
+
+    const setDialogMode = (mode) => {
+      if (mode === "edit") {
+        dialogTitle.textContent = "Edit Family";
+        dialogPrimaryButton.textContent = "Save Changes";
+      } else {
+        dialogTitle.textContent = "Add Family";
+        dialogPrimaryButton.textContent = "Add Family";
+      }
+    };
+
+    const openDialog = (details = null) => {
+      editingDetails = details;
+
+      if (details) {
+        familyNameInput.value = details.querySelector(".family-name")?.textContent?.trim() || "";
+        emailInput.value = details.querySelector(".email")?.textContent?.trim() || "";
+        phoneInput.value = details.querySelector(".phone")?.textContent?.trim() || "";
+        addressInput.value = details.querySelector(".address")?.textContent?.trim() || "";
+        childNameInputs.forEach((input) => {
+          input.value = "";
+        });
+        childAgeInputs.forEach((input) => {
+          input.value = "";
+        });
+
+        const childItems = Array.from(details.querySelectorAll(".children li"));
+        childItems.slice(0, 4).forEach((item, index) => {
+          const text = item.textContent || "";
+          const match = text.match(/^(.*?)(?:\s+)(\d+)\s*y\/o\s*$/i);
+          if (match) {
+            childNameInputs[index].value = match[1].trim();
+            childAgeInputs[index].value = match[2].trim();
+          } else {
+            childNameInputs[index].value = text.trim();
+          }
+        });
+        setDialogMode("edit");
+      } else {
+        addFamilyForm.reset();
+        setDialogMode("add");
+      }
+
+      addFamilyDialog.showModal();
+      firstField.focus();
+    };
+
+    const closeDialog = () => {
+      addFamilyForm.reset();
+      editingDetails = null;
+      setDialogMode("add");
+      addFamilyDialog.close();
+    };
+
+    addFamilyButton.addEventListener("click", () => {
+      openDialog();
+    });
+
+    dialogCloseButton.addEventListener("click", closeDialog);
+    dialogCancelButton.addEventListener("click", closeDialog);
+
+    familiesList.addEventListener("click", (event) => {
+      const editButton = event.target.closest(".icon-edit");
+      const deleteButton = event.target.closest(".icon-delete");
+
+      if (!editButton && !deleteButton) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const details = event.target.closest("details.family-row");
+      if (!details) {
+        return;
+      }
+
+      if (editButton) {
+        openDialog(details);
+        return;
+      }
+
+      details.remove();
+    });
+
+    addFamilyForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(addFamilyForm);
+      const familyName = String(formData.get("familyName") || "").trim();
+      const email = String(formData.get("email") || "").trim();
+      const phone = String(formData.get("phone") || "").trim();
+      const address = String(formData.get("address") || "").trim();
+
+      if (!familyName || !email || !phone || !address) {
+        return;
+      }
+
+      const children = childNameInputs.map((input, index) => {
+        const name = input.value.trim();
+        const age = childAgeInputs[index].value.trim();
+        if (!name && !age) {
+          return null;
+        }
+        return { name, age };
+      }).filter(Boolean);
+
+      const upsertChildrenList = (details) => {
+        let childrenList = details.querySelector(".children");
+        if (!childrenList) {
+          childrenList = document.createElement("ul");
+          childrenList.className = "children";
+          details.appendChild(childrenList);
+        }
+
+        childrenList.innerHTML = "";
+        children.forEach((child) => {
+          const item = document.createElement("li");
+          if (child.age) {
+            item.textContent = `${child.name || "Child"} ${child.age} y/o`;
+          } else {
+            item.textContent = child.name || "Child";
+          }
+          childrenList.appendChild(item);
+        });
+
+        if (children.length === 0) {
+          childrenList.remove();
+        }
+      };
+
+      if (editingDetails) {
+        editingDetails.querySelector(".family-name").textContent = familyName;
+        editingDetails.querySelector(".email").textContent = email;
+        editingDetails.querySelector(".phone").textContent = phone;
+        editingDetails.querySelector(".address").textContent = address;
+        upsertChildrenList(editingDetails);
+        closeDialog();
+        return;
+      }
+
+      const details = document.createElement("details");
+      details.className = "family-row";
+
+      const summary = document.createElement("summary");
+      const title = document.createElement("div");
+      title.className = "family-title";
+
+      const chevron = document.createElement("span");
+      chevron.className = "chevron";
+      chevron.textContent = "›";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "family-name";
+      nameSpan.textContent = familyName;
+
+      title.appendChild(chevron);
+      title.appendChild(nameSpan);
+
+      const emailSpan = document.createElement("span");
+      emailSpan.className = "email";
+      emailSpan.textContent = email;
+
+      const phoneSpan = document.createElement("span");
+      phoneSpan.className = "phone";
+      phoneSpan.textContent = phone;
+
+      const addressSpan = document.createElement("span");
+      addressSpan.className = "address";
+      addressSpan.textContent = address;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const editButton = document.createElement("button");
+      editButton.className = "icon-btn icon-edit";
+      editButton.type = "button";
+      editButton.setAttribute("aria-label", "Edit family");
+      editButton.textContent = "✎";
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "icon-btn icon-delete";
+      deleteButton.type = "button";
+      deleteButton.setAttribute("aria-label", "Delete family");
+      deleteButton.textContent = "🗑";
+
+      actions.appendChild(editButton);
+      actions.appendChild(deleteButton);
+
+      summary.appendChild(title);
+      summary.appendChild(emailSpan);
+      summary.appendChild(phoneSpan);
+      summary.appendChild(addressSpan);
+      summary.appendChild(actions);
+
+      details.appendChild(summary);
+      upsertChildrenList(details);
+      familiesList.appendChild(details);
+
+      details.addEventListener("toggle", () => updateChevron(details));
+      updateChevron(details);
+
+      closeDialog();
+    });
+  </script>
+</body>
+</html>

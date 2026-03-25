@@ -9,35 +9,74 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600&display=swap" >
 
   <!--Styles-->
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="home.css" />
   <link rel="stylesheet" href="../background.css">
 </head>
 <body>
 
   <div class="background-overlay"></div>
 
-  <div class="container">
+  <main class="page-shell">
     
-    <header class="top-bar">
-      <h1>Admin Home</h1>
-      <div class="account">Account</div>
+    <header class="top-nav">
+      <a href="admin-home.html" class="nav-link">Admin Home</a>
+      <button class="nav-link" type="button">Account</button>
     </header>
 
     <div class="grid">
 
-      <div class="card green left">Manage<br>Event</div>
-      <div class="card blue right">Manage<br>Families</div>
- 
-      <div class="card yellow left">Create<br>Event</div>
+      <a href="admin-seating.html"><div class="card green left">Manage<br>Event</div></a>
+      <a href="admin-families.html"><div class="card blue right">Manage<br>Families</div></a>
+      <button class="card yellow left" type="button" id="open-create-event">Create<br>Event</button>
       <div class="card green right">Sales and<br>Stripe</div>
 
     </div>
 
     <div class="view-logs-container">
-      <div class="card small yellow">View<br>Logs</div>
+      <a href="admin-log.html"><div class="card small yellow">View<br>Logs</div></a>
     </div>
 
+  </main>
+
+  <div class="modal-overlay" id="create-event-modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-event-title">
+      <h2 class="modal-title" id="create-event-title">Warning</h2>
+      <p class="modal-body">Warning: This will delete your existing event and create a new one. Are you sure you want to continue?</p>
+      <div class="modal-actions">
+        <button class="modal-button secondary" type="button" id="cancel-create-event">Cancel</button>
+        <a class="modal-button primary" href="admin-seating.html">Create Event</a>
+      </div>
+    </div>
   </div>
+
+  <script>
+    const openCreateEvent = document.getElementById("open-create-event");
+    const createEventModal = document.getElementById("create-event-modal");
+    const cancelCreateEvent = document.getElementById("cancel-create-event");
+
+    const openModal = () => {
+      createEventModal.classList.add("is-open");
+      createEventModal.setAttribute("aria-hidden", "false");
+    };
+
+    const closeModal = () => {
+      createEventModal.classList.remove("is-open");
+      createEventModal.setAttribute("aria-hidden", "true");
+    };
+
+    openCreateEvent.addEventListener("click", openModal);
+    cancelCreateEvent.addEventListener("click", closeModal);
+    createEventModal.addEventListener("click", (event) => {
+      if (event.target === createEventModal) {
+        closeModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && createEventModal.classList.contains("is-open")) {
+        closeModal();
+      }
+    });
+  </script>
 
 </body>
 </html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Seating</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="seating.css" />
+  <link rel="stylesheet" href="../background.css" />
+</head>
+<body>
+  <div class="background-overlay"></div>
+
+  <main class="page-shell">
+    <header class="top-nav">
+      <a href="admin-home.html" class="nav-link">Back</a>
+      <button class="nav-link" type="button">Account</button>
+    </header>
+
+    <section class="layout-grid" aria-label="Admin seating management">
+      <div class="chart-column">
+        <article class="chart-card card">
+          <h1 class="chart-title">Seating Chart</h1>
+          <p class="chart-note">
+            Can click on specific seats<br />
+            for more info/options (who bought<br />
+            the seat, option to remove person<br />
+            from seat)
+          </p>
+          <div id="seating-chart" class="seat-grid-placeholder" aria-hidden="true"></div>
+        </article>
+
+        <a href="admin-email.html" class="chart-reminder">
+          <button type="button" class="reminder-btn">Send Reminder Email</button>
+        </a>
+      </div>
+
+      <aside class="side-column">
+        <article class="seat-panel card" aria-live="polite">
+          <h2 class="seat-title">Seat <span id="seat-id">____</span></h2>
+
+          <div class="seat-info">
+            <p><span class="label">Whose seat this is</span> <span class="value" id="seat-owner"></span></p>
+            <p><span class="label">Type of seat</span> <span class="value" id="seat-type"></span></p>
+            <p><span class="label">Was it bought or free?</span> <span class="value" id="seat-status"></span></p>
+          </div>
+
+          <div class="panel-actions">
+            <button type="button" class="action-btn action-primary">Give seat to...</button>
+            <button type="button" class="action-btn action-warning">Lock/unlock Seat</button>
+            <button type="button" class="action-btn action-danger">Refund Seat</button>
+          </div>
+        </article>
+
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

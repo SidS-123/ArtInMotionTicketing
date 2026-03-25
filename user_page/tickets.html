@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arts in Motion - Tickets</title>
+  <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tickets.css">
+</head>
+<body>
+  <div class="background-overlay"></div>
+
+  <div class="page-shell">
+    <header class="top-nav" aria-label="Main Navigation">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <img src="home.png" alt="Home" class="nav-icon">
+      </a>
+      <a href="tickets.html" class="nav-link is-active" aria-label="Tickets" aria-current="page">
+        <img src="ticket.png" alt="Tickets" class="nav-icon">
+      </a>
+      <div class="user-wrap">
+        <span class="user-name">John Smith</span>
+        <a href="account.html" class="nav-link" aria-label="Account">
+          <img src="account.png" alt="Account" class="nav-icon">
+        </a>
+      </div>
+      <a href="roster.html" class="nav-link" aria-label="Roster">
+        <img src="recital.png" alt="Recitals" class="nav-icon">
+      </a>
+      <a href="cart.html" class="nav-link" aria-label="Cart">
+        <img src="cart.png" alt="Cart" class="nav-icon">
+      </a>
+    </header>
+
+    <main class="tickets-main">
+      <section class="day-switch" aria-label="Day selection">
+        <button type="button" class="day-btn" data-day="day1">Day 1</button>
+        <button type="button" class="day-btn is-active" data-day="day2">Day 2</button>
+      </section>
+
+      <section class="content-grid">
+        <article class="seating-card" aria-label="Seating chart">
+          <h1>Seating Chart</h1>
+
+          <div class="stage"></div>
+
+          <div class="seat-grid seat-grid--lux" data-seat-count="160" data-ticket-type="lux"></div>
+          <div class="seat-grid seat-grid--reg" data-seat-count="160" data-ticket-type="reg"></div>
+
+          <p class="tickets-left">
+            <span>Tickets left:</span>
+            <span id="ticketsLeftCount" class="count-pill muted">356</span>
+          </p>
+        </article>
+
+        <aside class="summary-card" aria-label="Ticket summary">
+          <div class="summary-row">
+            <span>Redeemable Tickets:</span>
+            <span id="redeemableCount" class="count-pill">4</span>
+          </div>
+          <div class="summary-row">
+            <span>Regular Tickets:</span>
+            <span id="regularCount" class="count-pill">0</span>
+          </div>
+          <div class="summary-row">
+            <span>Luxury Tickets:</span>
+            <span id="luxuryCount" class="count-pill strong">0</span>
+          </div>
+
+          <p id="redeemableWarning" class="redeem-warning" aria-live="polite" hidden>*You have used you free redeemable tickets</p>
+
+          <div class="total-row">
+            <span>Total Amount:</span>
+            <span id="totalAmount">$ 0.00</span>
+          </div>
+
+          <button type="button" id="addToCartBtn" class="add-btn">Add to cart</button>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const BASE_TICKETS_LEFT = 356;
+    const REDEEMABLE_LIMIT = 4;
+    const REG_PRICE = 5.0;
+    const LUX_PRICE = 5.15;
+    const DEFAULT_DAY = "day2";
+    const PRESELECTED = {
+      day1: { reg: [], lux: [] },
+      day2: { reg: [], lux: [] }
+    };
+
+    const dayButtons = document.querySelectorAll(".day-btn");
+    const seatGrids = document.querySelectorAll(".seat-grid");
+    const ticketsLeftCount = document.getElementById("ticketsLeftCount");
+    const redeemableCount = document.getElementById("redeemableCount");
+    const redeemableWarning = document.getElementById("redeemableWarning");
+    const regularCount = document.getElementById("regularCount");
+    const luxuryCount = document.getElementById("luxuryCount");
+    const totalAmount = document.getElementById("totalAmount");
+    const addToCartBtn = document.getElementById("addToCartBtn");
+
+    let currentDay = DEFAULT_DAY;
+    const state = {
+      day1: { reg: new Set(), lux: new Set() },
+      day2: { reg: new Set(), lux: new Set() }
+    };
+
+    function formatMoney(amount) {
+      return `$ ${amount.toFixed(2)}`;
+    }
+
+    function updateSummary() {
+      const dayState = state[currentDay];
+      const regCount = dayState.reg.size;
+      const luxCount = dayState.lux.size;
+      const selectedCount = regCount + luxCount;
+      const totalRegAcrossDays = state.day1.reg.size + state.day2.reg.size;
+      const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - totalRegAcrossDays);
+      const freeUsedAcrossDays = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
+      const chargedRegularCountAcrossDays = Math.max(0, totalRegAcrossDays - freeUsedAcrossDays);
+      const totalLuxAcrossDays = state.day1.lux.size + state.day2.lux.size;
+      const total = chargedRegularCountAcrossDays * REG_PRICE + totalLuxAcrossDays * LUX_PRICE;
+      const hasUsedAllRedeemable = redeemableRemaining === 0;
+
+      redeemableCount.textContent = String(redeemableRemaining);
+      redeemableWarning.hidden = !hasUsedAllRedeemable;
+      regularCount.textContent = String(regCount);
+      luxuryCount.textContent = String(luxCount);
+      ticketsLeftCount.textContent = String(Math.max(0, BASE_TICKETS_LEFT - selectedCount));
+      totalAmount.textContent = formatMoney(total);
+    }
+
+    function paintSeatSelection() {
+      seatGrids.forEach((grid) => {
+        const ticketType = grid.dataset.ticketType;
+        const selectedSeats = state[currentDay][ticketType];
+
+        Array.from(grid.children).forEach((seat, seatIndex) => {
+          const isSelected = selectedSeats.has(seatIndex);
+          seat.classList.toggle("seat--chosen", isSelected);
+          seat.setAttribute("aria-pressed", String(isSelected));
+        });
+      });
+    }
+
+    function setActiveDay(nextDay) {
+      currentDay = nextDay;
+      dayButtons.forEach((button) => {
+        const isActive = button.dataset.day === nextDay;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+      paintSeatSelection();
+      updateSummary();
+    }
+
+    function getDaySummary(dayKey) {
+      const dayState = state[dayKey];
+      const regCount = dayState.reg.size;
+      const luxCount = dayState.lux.size;
+      return {
+        regCount,
+        luxCount,
+        subtotal: 0
+      };
+    }
+
+    seatGrids.forEach((grid) => {
+      const count = Number(grid.dataset.seatCount || 0);
+      const ticketType = grid.dataset.ticketType;
+
+      for (let i = 0; i < count; i += 1) {
+        const seat = document.createElement("button");
+        seat.type = "button";
+        seat.className = "seat";
+        seat.setAttribute("aria-label", `${ticketType.toUpperCase()} seat ${i + 1}`);
+        seat.setAttribute("aria-pressed", "false");
+        seat.addEventListener("click", () => {
+          const dayState = state[currentDay][ticketType];
+          if (dayState.has(i)) {
+            dayState.delete(i);
+          } else {
+            dayState.add(i);
+          }
+          paintSeatSelection();
+          updateSummary();
+        });
+        grid.appendChild(seat);
+      }
+    });
+
+    Object.entries(PRESELECTED).forEach(([day, groups]) => {
+      groups.reg.forEach((index) => state[day].reg.add(index));
+      groups.lux.forEach((index) => state[day].lux.add(index));
+    });
+
+    dayButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setActiveDay(button.dataset.day);
+      });
+    });
+
+    addToCartBtn.addEventListener("click", () => {
+      const day1 = getDaySummary("day1");
+      const day2 = getDaySummary("day2");
+      const totalRegAcrossDays = day1.regCount + day2.regCount;
+      const freeTickets = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
+      const chargedRegularCount = Math.max(0, totalRegAcrossDays - freeTickets);
+      const totalLuxAcrossDays = day1.luxCount + day2.luxCount;
+      const regularAmount = chargedRegularCount * REG_PRICE;
+      const luxuryAmount = totalLuxAcrossDays * LUX_PRICE;
+      const payload = {
+        savedAt: new Date().toISOString(),
+        pricing: {
+          regPrice: REG_PRICE,
+          luxPrice: LUX_PRICE,
+          redeemablePerDay: REDEEMABLE_LIMIT
+        },
+        totals: {
+          freeTickets,
+          regularTickets: chargedRegularCount,
+          luxuryTickets: totalLuxAcrossDays,
+          regularAmount,
+          luxuryAmount,
+          ticketSubtotal: regularAmount + luxuryAmount
+        },
+        days: {
+          day1,
+          day2
+        }
+      };
+
+      localStorage.setItem("aimCartTickets", JSON.stringify(payload));
+      window.location.href = "cart.html";
+    });
+
+    setActiveDay(DEFAULT_DAY);
+  </script>
+</body>
+</html>

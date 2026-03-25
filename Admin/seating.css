@@ -1,0 +1,221 @@
+body {
+  min-height: 100vh;
+  color: #000;
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: 22px 32px 28px;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
+  padding-bottom: 18px;
+}
+
+.nav-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  font: 700 38px/1.1 "K2D", sans-serif;
+  cursor: pointer;
+}
+
+.layout-grid {
+  margin-top: 44px;
+  display: grid;
+  grid-template-columns: minmax(520px, 7fr) minmax(320px, 3fr);
+  gap: 66px;
+  align-items: start;
+}
+
+.chart-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+
+.card {
+  border: 5px solid #000;
+  border-radius: 50px;
+}
+
+.chart-card {
+  background: #c9d35b;
+  min-height: calc(100vh - 350px);
+  padding: 46px 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.chart-title {
+  font: 500 clamp(32px, 3.1vw, 50px)/1.1 "K2D", sans-serif;
+  text-align: center;
+}
+
+.chart-note {
+  max-width: 540px;
+  text-align: center;
+  font: 500 clamp(18px, 2vw, 40px)/1.35 "K2D", sans-serif;
+}
+
+.seat-grid-placeholder {
+  height: 1px;
+  width: 100%;
+}
+
+.side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.seat-panel {
+  background: #a8c8b1;
+  padding: 30px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-height: calc(100vh - 190px);
+}
+
+.seat-title {
+  text-align: center;
+  font: 700 clamp(30px, 2.8vw, 56px)/1.1 "K2D", sans-serif;
+}
+
+.seat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.seat-info p {
+  font: 500 clamp(19px, 1.6vw, 34px)/1.2 "K2D", sans-serif;
+}
+
+.label {
+  display: block;
+}
+
+.value {
+  display: block;
+  min-height: 1.2em;
+}
+
+.panel-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.action-btn,
+.reminder-btn {
+  border: 0;
+  border-radius: 20px;
+  color: #000;
+  font: 500 clamp(18px, 1.8vw, 36px)/1.2 "K2D", sans-serif;
+  padding: 18px 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.action-btn:hover,
+.reminder-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.action-btn:active,
+.reminder-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn:focus-visible,
+.reminder-btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 3px solid #111;
+  outline-offset: 2px;
+}
+
+.action-primary {
+  background: #e5cf61;
+}
+
+.action-warning {
+  background: #e4a058;
+}
+
+.action-danger {
+  background: #eb6060;
+}
+
+.reminder-btn {
+  align-self: center;
+  width: min(100%, 272px);
+  background: #e4a058;
+}
+
+.chart-reminder {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.chart-reminder .reminder-btn {
+  width: min(100%, 360px);
+  padding: 12px 18px;
+}
+
+@media (max-width: 1100px) {
+  .page-shell {
+    padding: 16px;
+  }
+
+  .nav-link {
+    font-size: 28px;
+  }
+
+  .layout-grid {
+    margin-top: 28px;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .chart-card,
+  .seat-panel {
+    min-height: auto;
+    border-width: 4px;
+    border-radius: 30px;
+  }
+
+  .chart-card {
+    padding: 42px 24px;
+    gap: 44px;
+  }
+
+  .seat-panel {
+    padding: 22px 16px 16px;
+  }
+
+  .panel-actions {
+    margin-top: 8px;
+  }
+
+  .reminder-btn {
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .chart-column {
+    gap: 18px;
+  }
+}
