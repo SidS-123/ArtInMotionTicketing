@@ -18,7 +18,7 @@
        <img src="ticket.png" alt="Tickets" class="nav-icon">
      </a>
      <div class="user-wrap">
-       <span class="user-name">John Smith</span>
+       <span class="user-name" id="userName">Loading...</span>
        <a href="account.html" class="nav-link" aria-label="Account">
          <img src="account.png" alt="Account" class="nav-icon account-icon">
        </a>
@@ -50,52 +50,13 @@
        </div>
 
 
-       <div class="recital-row">
-         <span>French Ballerinas</span>
-         <span>May 18, 2026</span>
-         <span>6:30 PM</span>
-         <div class="ticket-cell">
-           <button type="button" id="ticketInfoBtn" class="ticket-info-btn">Ticket Info</button>
-
-           <aside id="ticketPopup" class="ticket-popup" aria-hidden="true">
-             <button type="button" id="closePopupBtn" class="close-popup-btn" aria-label="Close ticket popup">x</button>
-             <div class="popup-row">
-               <span>Ticket Purchased</span>
-               <span>Ticket Type</span>
-             </div>
-             <div class="popup-row popup-values">
-               <span>6D, 7D, 8D</span>
-               <span>Reg</span>
-             </div>
-           </aside>
-         </div>
-       </div>
+       <div id="recitalRows"></div>
      </section>
    </main>
  </div>
 
-
- <script>
-   const ticketInfoBtn = document.getElementById('ticketInfoBtn');
-   const ticketPopup = document.getElementById('ticketPopup');
-   const closePopupBtn = document.getElementById('closePopupBtn');
-
-
-   function showPopup() {
-     ticketPopup.style.display = 'block';
-     ticketPopup.setAttribute('aria-hidden', 'false');
-   }
-
-
-   function hidePopup() {
-     ticketPopup.style.display = 'none';
-     ticketPopup.setAttribute('aria-hidden', 'true');
-   }
-
-
-   ticketInfoBtn.addEventListener('click', showPopup);
-   closePopupBtn.addEventListener('click', hidePopup);
- </script>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <script src="supabase.config.js"></script>
+ <script src="script.js"></script>
 </body>
 </html>
-
