@@ -76,31 +76,36 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(19, 19, 19, 0.65);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
   z-index: 10;
 }
 
 .modal-overlay.is-open {
   opacity: 1;
   pointer-events: auto;
+  animation: dialogBackdropFade 0.2s ease;
 }
 
 .modal {
-  background: #ffffff;
-  border: 3px solid #000;
-  border-radius: 26px;
-  max-width: 560px;
-  width: min(90vw, 560px);
-  padding: 28px 30px 24px;
+  background: #fffdf6;
+  border: 0;
+  border-radius: 24px;
+  max-width: 620px;
+  width: min(92vw, 620px);
+  padding: 28px 28px 24px;
   text-align: left;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  font-family: "K2D", sans-serif;
+}
+
+.modal-overlay.is-open .modal {
+  animation: dialogFadeIn 0.2s ease;
 }
 
 .modal-title {
-  font: 700 28px/1.1 "K2D", sans-serif;
+  font: 700 32px/1.1 "K2D", sans-serif;
   margin: 0 0 12px;
 }
 
@@ -113,15 +118,15 @@ body {
 .modal-actions {
   display: flex;
   gap: 14px;
-  justify-content: flex-end;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
 .modal-button {
-  border: 2px solid #000;
-  border-radius: 999px;
-  padding: 10px 20px;
-  font: 600 16px/1 "K2D", sans-serif;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font: 600 18px/1 "K2D", sans-serif;
   text-decoration: none;
   cursor: pointer;
   background: #fff;
@@ -135,11 +140,31 @@ body {
 }
 
 .modal-button.primary {
-  background: #C9D35B;
+  background: #4bc07f;
 }
 
 .modal-button.secondary {
-  background: #F2F2F2;
+  background: #e4a058;
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dialogBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Colors */

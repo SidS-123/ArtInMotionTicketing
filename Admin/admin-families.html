@@ -134,6 +134,19 @@
         </form>
       </dialog>
 
+      <div class="modal-overlay" id="delete-family-modal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-family-title">
+          <h2 class="modal-title" id="delete-family-title">Delete Family</h2>
+          <p class="modal-body">
+            Delete this family? This will permanently delete the account of the family, and they will no longer be able to log in. If you want to change information, please click the edit button instead.
+          </p>
+          <div class="modal-actions">
+            <button class="modal-button secondary" type="button" id="cancel-delete-family">Cancel</button>
+            <button class="modal-button primary" type="button" id="confirm-delete-family">Delete Family</button>
+          </div>
+        </div>
+      </div>
+
       <div class="footer-actions">
         <button class="add-family" type="button">Add Family</button>
         <a href="admin-email.html"><button class="send-email" type="button">Send Email</button></a>
@@ -166,9 +179,13 @@
     const addressInput = addFamilyDialog.querySelector("input[name=\"address\"]");
     const childNameInputs = Array.from(addFamilyDialog.querySelectorAll("input[name^=\"childName\"]"));
     const childAgeInputs = Array.from(addFamilyDialog.querySelectorAll("input[name^=\"childAge\"]"));
+    const deleteFamilyModal = document.getElementById("delete-family-modal");
+    const cancelDeleteFamilyButton = document.getElementById("cancel-delete-family");
+    const confirmDeleteFamilyButton = document.getElementById("confirm-delete-family");
 
     let editingDetails = null;
     let isSubmitting = false;
+    let pendingDeleteDetails = null;
 
     const updateChevron = (details) => {
       const chevron = details.querySelector(".chevron");
@@ -217,7 +234,7 @@
 
       const phoneSpan = document.createElement("span");
       phoneSpan.className = "phone";
-      phoneSpan.textContent = row?.primary_phone || "—";
+      phoneSpan.textContent = formatPhone(row?.primary_phone) || "—";
 
       const addressSpan = document.createElement("span");
       addressSpan.className = "address";
@@ -253,9 +270,8 @@
         const childrenList = document.createElement("ul");
         childrenList.className = "children";
         dancers.forEach((child) => {
-          const nameParts = [child?.first_name, child?.last_name].filter(Boolean);
           const item = document.createElement("li");
-          const label = nameParts.join(" ") || "Child";
+          const label = String(child?.first_name || "").trim() || "Child";
           const ageValue = Number(child?.age);
           if (Number.isFinite(ageValue) && ageValue >= 0) {
             item.textContent = `${label} ${ageValue} y/o`;
@@ -331,6 +347,13 @@
         : (editingDetails ? "Save Changes" : "Add Family");
     };
 
+    const formatPhone = (value) => {
+      const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    };
+
     const splitName = (fullName) => {
       const cleaned = String(fullName || "").trim().replace(/\s+/g, " ");
       if (!cleaned) return { first_name: "", last_name: "" };
@@ -371,7 +394,7 @@
       if (details) {
         familyNameInput.value = details.querySelector(".family-name")?.textContent?.trim() || "";
         emailInput.value = details.querySelector(".email")?.textContent?.trim() || "";
-        phoneInput.value = details.querySelector(".phone")?.textContent?.trim() || "";
+        phoneInput.value = formatPhone(details.querySelector(".phone")?.textContent?.trim() || "");
         addressInput.value = details.querySelector(".address")?.textContent?.trim() || "";
         childNameInputs.forEach((input) => {
           input.value = "";
@@ -414,36 +437,26 @@
 
     dialogCloseButton.addEventListener("click", closeDialog);
     dialogCancelButton.addEventListener("click", closeDialog);
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = formatPhone(phoneInput.value);
+    });
 
-    familiesList.addEventListener("click", async (event) => {
-      const editButton = event.target.closest(".icon-edit");
-      const deleteButton = event.target.closest(".icon-delete");
+    const openDeleteModal = (details) => {
+      pendingDeleteDetails = details;
+      deleteFamilyModal.classList.add("is-open");
+      deleteFamilyModal.setAttribute("aria-hidden", "false");
+    };
 
-      if (!editButton && !deleteButton) {
-        return;
-      }
+    const closeDeleteModal = () => {
+      pendingDeleteDetails = null;
+      deleteFamilyModal.classList.remove("is-open");
+      deleteFamilyModal.setAttribute("aria-hidden", "true");
+    };
 
-      event.preventDefault();
-      event.stopPropagation();
-
-      const details = event.target.closest("details.family-row");
-      if (!details) {
-        return;
-      }
-
-      if (editButton) {
-        openDialog(details);
-        return;
-      }
-
-      const familyId = details.dataset.familyId;
+    const performDelete = async (details) => {
+      const familyId = details?.dataset?.familyId;
       if (!familyId || !supabaseClient) {
-        details.remove();
-        return;
-      }
-
-      const confirmed = window.confirm("Delete this family?");
-      if (!confirmed) {
+        details?.remove();
         return;
       }
 
@@ -466,10 +479,52 @@
           throw error;
         }
 
-        details.remove();
+        details?.remove();
       } catch (err) {
         alert(`Unable to delete family: ${err?.message || "Unknown error"}`);
       }
+    };
+
+    cancelDeleteFamilyButton.addEventListener("click", closeDeleteModal);
+    confirmDeleteFamilyButton.addEventListener("click", async () => {
+      if (pendingDeleteDetails) {
+        await performDelete(pendingDeleteDetails);
+      }
+      closeDeleteModal();
+    });
+    deleteFamilyModal.addEventListener("click", (event) => {
+      if (event.target === deleteFamilyModal) {
+        closeDeleteModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && deleteFamilyModal.classList.contains("is-open")) {
+        closeDeleteModal();
+      }
+    });
+
+    familiesList.addEventListener("click", async (event) => {
+      const editButton = event.target.closest(".icon-edit");
+      const deleteButton = event.target.closest(".icon-delete");
+
+      if (!editButton && !deleteButton) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const details = event.target.closest("details.family-row");
+      if (!details) {
+        return;
+      }
+
+      if (editButton) {
+        openDialog(details);
+        return;
+      }
+
+      openDeleteModal(details);
     });
 
     addFamilyForm.addEventListener("submit", async (event) => {
@@ -478,7 +533,7 @@
       const formData = new FormData(addFamilyForm);
       const familyName = String(formData.get("familyName") || "").trim();
       const email = String(formData.get("email") || "").trim();
-      const phone = String(formData.get("phone") || "").trim();
+      const phone = formatPhone(String(formData.get("phone") || ""));
       const address = String(formData.get("address") || "").trim();
 
       if (!familyName || !email || !phone || !address) {

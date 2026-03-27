@@ -15,9 +15,7 @@
     const form = document.getElementById('signupForm');
     const submitButton = form?.querySelector('button[type="submit"]');
     const formMessage = document.getElementById('formMessage');
-    const familySelect = document.getElementById('family');
-
-    let familiesAvailable = false;
+    let familiesAvailable = true;
 
 function setMessage(text, type = '') {
     if (!formMessage) return;
@@ -39,78 +37,6 @@ function setFamilyAvailability(isAvailable) {
     }
 }
 
-function isSelectableFamily(row) {
-    return Number.isInteger(Number(row?.id)) && Number(row?.id) > 0;
-}
-
-function resetFamilyOptions() {
-    if (!familySelect) return;
-    familySelect.innerHTML = '<option value="" selected disabled>Select Family</option>';
-}
-
-function renderFamilyOptions(rows) {
-    if (!familySelect) return 0;
-    resetFamilyOptions();
-
-    let rendered = 0;
-    for (const row of rows) {
-        const id = Number(row?.id);
-        if (!Number.isInteger(id) || id <= 0) continue;
-        if (!isSelectableFamily(row)) continue;
-
-        const label = String(row?.family_name || '').trim() || `Family #${id}`;
-        const option = document.createElement('option');
-        option.value = String(id);
-        option.textContent = label;
-        familySelect.appendChild(option);
-        rendered += 1;
-    }
-
-    return rendered;
-}
-
-async function loadFamilyOptions() {
-    if (!familySelect) return;
-
-    if (!supabaseClient) {
-        familySelect.disabled = true;
-        setFamilyAvailability(false);
-        setMessage('Unable to load families. Add Supabase keys in login_page/supabase.config.js.', 'error');
-        return;
-    }
-
-    try {
-        familySelect.disabled = true;
-        setFamilyAvailability(false);
-
-        const { data, error } = await supabaseClient
-            .from('familyaccount')
-            .select('id, family_name, status')
-            .order('family_name', { ascending: true });
-
-        if (error) throw error;
-
-        const rows = Array.isArray(data) ? data : [];
-        const count = renderFamilyOptions(rows);
-
-        if (!count) {
-            familySelect.disabled = true;
-            setFamilyAvailability(false);
-            setMessage('No families available. Contact support.', 'error');
-            return;
-        }
-
-        familySelect.disabled = false;
-        setFamilyAvailability(true);
-        setMessage('');
-    } catch (err) {
-        resetFamilyOptions();
-        familySelect.disabled = true;
-        setFamilyAvailability(false);
-        setMessage('Unable to load families. Please try again.', 'error');
-    }
-}
-
 async function handleSignUp(event) {
     event.preventDefault();
 
@@ -118,16 +44,9 @@ async function handleSignUp(event) {
     const firstName = (document.getElementById('firstName')?.value || '').trim();
     const lastName = (document.getElementById('lastName')?.value || '').trim();
     const password = document.getElementById('password')?.value || '';
-    const family = familySelect?.value || '';
-    const familyAccountId = Number(family);
 
-    if (!email || !firstName || !lastName || !password || !family) {
+    if (!email || !firstName || !lastName || !password) {
         setMessage('Please fill out all fields.', 'error');
-        return;
-    }
-
-    if (!Number.isInteger(familyAccountId) || familyAccountId <= 0) {
-        setMessage('Invalid family selection.', 'error');
         return;
     }
 
@@ -140,8 +59,22 @@ async function handleSignUp(event) {
         setLoading(true);
         setMessage('');
 
+        const familyName = lastName.trim();
+        const { data: familyRow, error: familyInsertError } = await supabaseClient
+            .from(familyTable)
+            .insert({
+                family_name: familyName,
+                status: 'active'
+            })
+            .select('id')
+            .single();
+
+        if (familyInsertError || !familyRow?.id) {
+            throw new Error(`Unable to create family: ${familyInsertError?.message || 'Unknown error'}`);
+        }
+
         const userRow = {
-            family_account_id: familyAccountId,
+            family_account_id: familyRow.id,
             first_name: firstName,
             last_name: lastName,
             email,
@@ -149,31 +82,37 @@ async function handleSignUp(event) {
             password_hash: password
         };
 
-        const { error: userWriteError } = await supabaseClient
+        const { data: existingUser, error: userLookupError } = await supabaseClient
             .from(usersTable)
-            .upsert(userRow, { onConflict: 'email' });
-
-        if (userWriteError) {
-            throw new Error(`Account created, but profile setup failed: ${userWriteError.message}`);
-        }
-
-        const { data: activatedRows, error: familyUpdateError } = await supabaseClient
-            .from(familyTable)
-            .update({ status: 'active' })
-            .eq('id', familyAccountId)
             .select('id')
-            .limit(1);
+            .eq('email', email)
+            .maybeSingle();
 
-        if (familyUpdateError) {
-            throw new Error(`Account created, but family activation failed: ${familyUpdateError.message}`);
+        if (userLookupError) {
+            throw new Error(`Account created, but profile lookup failed: ${userLookupError.message}`);
         }
 
-        if (!Array.isArray(activatedRows) || activatedRows.length === 0) {
-            throw new Error('Selected family no longer exists. Refresh and try again.');
+        if (existingUser?.id) {
+            const { error: userUpdateError } = await supabaseClient
+                .from(usersTable)
+                .update(userRow)
+                .eq('id', existingUser.id);
+
+            if (userUpdateError) {
+                throw new Error(`Account created, but profile update failed: ${userUpdateError.message}`);
+            }
+        } else {
+            const { error: userInsertError } = await supabaseClient
+                .from(usersTable)
+                .insert(userRow);
+
+            if (userInsertError) {
+                throw new Error(`Account created, but profile setup failed: ${userInsertError.message}`);
+            }
         }
 
         form.reset();
-        setMessage('Account created and family activated.', 'success');
+        setMessage('Account created and family added.', 'success');
     } catch (err) {
         setMessage(err?.message || 'Could not create account.', 'error');
     } finally {
@@ -185,5 +124,5 @@ async function handleSignUp(event) {
         form.addEventListener('submit', handleSignUp);
     }
 
-    loadFamilyOptions();
+    setFamilyAvailability(true);
 })();
