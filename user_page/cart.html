@@ -18,7 +18,7 @@
         <img src="ticket.png" alt="Tickets" class="nav-icon">
       </a>
       <div class="user-wrap">
-        <span class="user-name">John Smith</span>
+        <span class="user-name" id="userName">Loading...</span>
         <a href="account.html" class="nav-link" aria-label="Account">
           <img src="account.png" alt="Account" class="nav-icon">
         </a>
@@ -279,5 +279,8 @@
     updateSummary();
     resetTicketsBtn.addEventListener("click", resetTickets);
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.config.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
