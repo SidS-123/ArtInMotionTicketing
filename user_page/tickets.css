@@ -153,7 +153,7 @@ body {
 .seat {
   position: absolute;
   transform: translate(-50%, -50%); /* Centers the seat on the exact X/Y coordinate */
-  width: 1.8%; /* Size of the seat bubble relative to the map */
+  width: 1.35%; /* Size of the seat bubble relative to the map */
   aspect-ratio: 1 / 1;
   border-radius: 999px;
   border: 1px solid #111;
