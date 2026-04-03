@@ -122,6 +122,9 @@ details[open] .chevron {
   font-size: 34px;
   line-height: 1;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-edit {
@@ -130,6 +133,13 @@ details[open] .chevron {
 
 .icon-delete {
   background: #ff3f3f;
+}
+
+.icon-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
 }
 
 .children {

@@ -36,8 +36,12 @@
             <span class="phone">2134131231</span>
             <span class="address">123 Main St</span>
             <div class="actions">
-              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">✎</button>
-              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">🗑</button>
+              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">
+                <img class="icon-img" src="pencil.png" alt="" />
+              </button>
+              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">
+                <img class="icon-img" src="trash-can.png" alt="" />
+              </button>
             </div>
           </summary>
           <ul class="children">
@@ -55,8 +59,12 @@
             <span class="phone">2134131231</span>
             <span class="address">123 Main St</span>
             <div class="actions">
-              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">✎</button>
-              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">🗑</button>
+              <button class="icon-btn icon-edit" type="button" aria-label="Edit family">
+                <img class="icon-img" src="pencil.png" alt="" />
+              </button>
+              <button class="icon-btn icon-delete" type="button" aria-label="Delete family">
+                <img class="icon-img" src="trash-can.png" alt="" />
+              </button>
             </div>
           </summary>
         </details>
@@ -247,13 +255,21 @@
       editButton.className = "icon-btn icon-edit";
       editButton.type = "button";
       editButton.setAttribute("aria-label", "Edit family");
-      editButton.textContent = "✎";
+      const editIcon = document.createElement("img");
+      editIcon.className = "icon-img";
+      editIcon.src = "pencil.png";
+      editIcon.alt = "";
+      editButton.appendChild(editIcon);
 
       const deleteButton = document.createElement("button");
       deleteButton.className = "icon-btn icon-delete";
       deleteButton.type = "button";
       deleteButton.setAttribute("aria-label", "Delete family");
-      deleteButton.textContent = "🗑";
+      const deleteIcon = document.createElement("img");
+      deleteIcon.className = "icon-img";
+      deleteIcon.src = "trash-can.png";
+      deleteIcon.alt = "";
+      deleteButton.appendChild(deleteIcon);
 
       actions.appendChild(editButton);
       actions.appendChild(deleteButton);
