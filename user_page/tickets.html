@@ -50,6 +50,7 @@
 
           <p class="legend" aria-label="Seat legend">
             <span class="legend-item"><span class="legend-swatch legend-swatch--lux"></span>Luxury (Yellow)</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--blue"></span>Blue</span>
             <span class="legend-item"><span class="legend-swatch legend-swatch--reg"></span>Regular (Red)</span>
           </p>
 
@@ -1061,8 +1062,8 @@
     // 2. STATE MANAGEMENT
     // ---------------------------------------------------------
     const state = {
-      day1: { reg: new Set(), lux: new Set() },
-      day2: { reg: new Set(), lux: new Set() }
+      day1: { reg: new Set(), lux: new Set(), blue: new Set() },
+      day2: { reg: new Set(), lux: new Set(), blue: new Set() }
     };
     let currentDay = DEFAULT_DAY;
     let totalSeats = seatMapData.length;
@@ -1089,11 +1090,15 @@
     // ---------------------------------------------------------
     function updateSummary() {
       const dayState = state[currentDay];
-      const regCount = dayState.reg.size;
+      const regCount = dayState.reg.size + dayState.blue.size;
       const luxCount = dayState.lux.size;
       const selectedCount = regCount + luxCount;
       
-      const totalRegAcrossDays = state.day1.reg.size + state.day2.reg.size;
+      const totalRegAcrossDays =
+        state.day1.reg.size +
+        state.day1.blue.size +
+        state.day2.reg.size +
+        state.day2.blue.size;
       const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - totalRegAcrossDays);
       const freeUsedAcrossDays = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
       const chargedRegularCountAcrossDays = Math.max(0, totalRegAcrossDays - freeUsedAcrossDays);
@@ -1112,7 +1117,7 @@
     }
 
     function getSelectedSeatLabels(dayKey) {
-      return [...state[dayKey].reg, ...state[dayKey].lux].map(formatSeatLabelForDisplay);
+      return [...state[dayKey].reg, ...state[dayKey].blue, ...state[dayKey].lux].map(formatSeatLabelForDisplay);
     }
 
     function formatSeatLabelForDisplay(seatId) {
@@ -1120,9 +1125,17 @@
       return normalizedSeatId.replace(/^Ctr/i, "");
     }
 
+    function getSeatType(seat) {
+      if (String(seat.id || "").toUpperCase().startsWith("BLUE")) {
+        return "blue";
+      }
+
+      return seat.type;
+    }
+
     function buildCartTicketPayload() {
-      const day1Reg = state.day1.reg.size;
-      const day2Reg = state.day2.reg.size;
+      const day1Reg = state.day1.reg.size + state.day1.blue.size;
+      const day2Reg = state.day2.reg.size + state.day2.blue.size;
       const totalRegAcrossDays = day1Reg + day2Reg;
       const totalLuxAcrossDays = state.day1.lux.size + state.day2.lux.size;
       const freeTickets = Math.min(REDEEMABLE_LIMIT, totalRegAcrossDays);
@@ -1134,10 +1147,12 @@
         selections: {
           day1: {
             reg: [...state.day1.reg],
+            blue: [...state.day1.blue],
             lux: [...state.day1.lux]
           },
           day2: {
             reg: [...state.day2.reg],
+            blue: [...state.day2.blue],
             lux: [...state.day2.lux]
           }
         },
@@ -1170,8 +1185,10 @@
         }
 
         state.day1.reg = new Set(selections.day1?.reg || []);
+        state.day1.blue = new Set(selections.day1?.blue || []);
         state.day1.lux = new Set(selections.day1?.lux || []);
         state.day2.reg = new Set(selections.day2?.reg || []);
+        state.day2.blue = new Set(selections.day2?.blue || []);
         state.day2.lux = new Set(selections.day2?.lux || []);
       } catch (error) {
         console.warn("Could not restore saved ticket selections.", error);
@@ -1206,22 +1223,23 @@
       seatOverlay.innerHTML = ""; 
 
       seatMapData.forEach(seatData => {
+        const ticketType = getSeatType(seatData);
         const seatBtn = document.createElement("button");
         seatBtn.type = "button";
-        seatBtn.className = `seat seat--${seatData.type}`;
+        seatBtn.className = `seat seat--${ticketType}`;
         
         // Exact positioning
         seatBtn.style.left = `${seatData.x}%`;
         seatBtn.style.top = `${seatData.y}%`;
         
         // Data binding
-        seatBtn.dataset.ticketType = seatData.type;
+        seatBtn.dataset.ticketType = ticketType;
         seatBtn.dataset.seatId = seatData.id;
-        seatBtn.setAttribute("aria-label", `${seatData.type.toUpperCase()} seat ${seatData.id}`);
+        seatBtn.setAttribute("aria-label", `${ticketType.toUpperCase()} seat ${seatData.id}`);
         seatBtn.title = seatData.id;
         
         seatBtn.addEventListener("click", () => {
-          const dayState = state[currentDay][seatData.type];
+          const dayState = state[currentDay][ticketType];
           if (dayState.has(seatData.id)) {
             dayState.delete(seatData.id);
           } else {
@@ -1247,8 +1265,10 @@
     addToCartBtn.addEventListener("click", () => {
       const selectedCount =
         state.day1.reg.size +
+        state.day1.blue.size +
         state.day1.lux.size +
         state.day2.reg.size +
+        state.day2.blue.size +
         state.day2.lux.size;
 
       if (selectedCount === 0) {
@@ -1269,7 +1289,10 @@
 
         const jsonSeatMap = await response.json();
         if (Array.isArray(jsonSeatMap) && jsonSeatMap.length > 0) {
-          seatMapData = jsonSeatMap;
+          seatMapData = jsonSeatMap.map((seat) => ({
+            ...seat,
+            type: getSeatType(seat)
+          }));
           totalSeats = seatMapData.length;
         }
       } catch (error) {
