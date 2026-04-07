@@ -263,7 +263,8 @@ body {
 }
 
 .count-pill.strong {
-  background: #ff6d6d;
+  background: #d1df58;
+  color: #111;
 }
 
 .count-pill.muted {
