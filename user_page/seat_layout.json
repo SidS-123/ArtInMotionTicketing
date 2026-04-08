@@ -1,0 +1,84 @@
+{
+  "sections": [
+    {
+      "id": "A",
+      "rows": [
+        { "row": 1, "count": 8 },
+        { "row": 2, "count": 9 },
+        { "row": 3, "count": 10 },
+        { "row": 4, "count": 10 },
+        { "row": 5, "count": 10 },
+        { "row": 6, "count": 9 },
+        { "row": 7, "count": 9 },
+        { "row": 8, "count": 8 },
+        { "row": 9, "count": 8 },
+        { "row": 10, "count": 7 },
+        { "row": 11, "count": 7 }
+      ]
+    },
+    {
+      "id": "B",
+      "rows": [
+        { "row": 1, "count": 10 },
+        { "row": 2, "count": 11 },
+        { "row": 3, "count": 12 },
+        { "row": 4, "count": 12 },
+        { "row": 5, "count": 12 },
+        { "row": 6, "count": 11 },
+        { "row": 7, "count": 11 },
+        { "row": 8, "count": 10 },
+        { "row": 9, "count": 10 },
+        { "row": 10, "count": 9 },
+        { "row": 11, "count": 9 }
+      ]
+    },
+    {
+      "id": "C",
+      "rows": [
+        { "row": 1, "count": 12 },
+        { "row": 2, "count": 13 },
+        { "row": 3, "count": 14 },
+        { "row": 4, "count": 14 },
+        { "row": 5, "count": 14 },
+        { "row": 6, "count": 13 },
+        { "row": 7, "count": 13 },
+        { "row": 8, "count": 12 },
+        { "row": 9, "count": 12 },
+        { "row": 10, "count": 11 },
+        { "row": 11, "count": 11 }
+      ]
+    },
+    {
+      "id": "D",
+      "rows": [
+        { "row": 1, "count": 10 },
+        { "row": 2, "count": 11 },
+        { "row": 3, "count": 12 },
+        { "row": 4, "count": 12 },
+        { "row": 5, "count": 12 },
+        { "row": 6, "count": 11 },
+        { "row": 7, "count": 11 },
+        { "row": 8, "count": 10 },
+        { "row": 9, "count": 10 },
+        { "row": 10, "count": 9 },
+        { "row": 11, "count": 9 }
+      ]
+    },
+    {
+      "id": "E",
+      "rows": [
+        { "row": 1, "count": 8 },
+        { "row": 2, "count": 9 },
+        { "row": 3, "count": 10 },
+        { "row": 4, "count": 10 },
+        { "row": 5, "count": 10 },
+        { "row": 6, "count": 9 },
+        { "row": 7, "count": 9 },
+        { "row": 8, "count": 8 },
+        { "row": 9, "count": 8 },
+        { "row": 10, "count": 7 },
+        { "row": 11, "count": 7 }
+      ]
+    }
+  ]
+}

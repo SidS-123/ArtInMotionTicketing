@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Portal | Login</title>
+    <link rel="stylesheet" href="../background.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600&display=swap" >
+
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="role-toggle">
+                <button id="userTab" class="active" onclick="switchRole('user')">User Login</button>
+                <button id="adminTab" onclick="switchRole('admin')">Admin Login</button>
+                <button id="signupTab" onclick="switchRole('signup')">Sign Up</button>
+            </div>
+
+            <form id="userForm" class="login-form">
+                <h2>User Access</h2>
+                <div class="input-group">
+                    <label for="u-email">Email</label>
+                    <input type="email" id="u-email" name="email" placeholder="Enter Email" required>
+                </div>
+                <div class="input-group">
+                    <label for="u-pass">Password</label>
+                    <input type="password" id="u-pass" name="password" placeholder="Enter Password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+
+            <form id="adminForm" class="login-form" style="display: none;">
+                <h2>Admin Access</h2>
+                <div class="input-group">
+                    <label for="a-name">Email</label>
+                    <input type="text" id="a-name" name="username" placeholder="Enter Email" required>
+                </div>
+                <div class="input-group">
+                    <label for="a-pass">Password</label>
+                    <input type="password" id="a-pass" name="password" placeholder="Enter Password" required>
+                </div>
+                <button type="submit" class="login-btn admin-theme">Admin Login</button>
+            </form>
+
+            <form id="signupForm" class="signup-form" style="display: none;">
+                <h2>Create Account</h2>
+
+                <div class="input-group">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" placeholder="Enter First Name" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" placeholder="Enter Last Name" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter Email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter Password" minlength="6" required>
+                </div>
+
+                <button type="submit" class="signup-btn">Sign Up</button>
+                <p id="formMessage" class="form-message" aria-live="polite"></p>
+                <p class="back-link"><a href="#" onclick="switchRole('user'); return false;">Back to Login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.config.js"></script>
+    <script src="script.js"></script>
+    <script src="sign_up_page/script.js"></script>
+</body>
+</html>

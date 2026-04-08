@@ -69,6 +69,104 @@ body {
   transform: scale(1.05);
 }
 
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(19, 19, 19, 0.65);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  animation: dialogBackdropFade 0.2s ease;
+}
+
+.modal {
+  background: #fffdf6;
+  border: 0;
+  border-radius: 24px;
+  max-width: 620px;
+  width: min(92vw, 620px);
+  padding: 28px 28px 24px;
+  text-align: left;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  font-family: "K2D", sans-serif;
+}
+
+.modal-overlay.is-open .modal {
+  animation: dialogFadeIn 0.2s ease;
+}
+
+.modal-title {
+  font: 700 32px/1.1 "K2D", sans-serif;
+  margin: 0 0 12px;
+}
+
+.modal-body {
+  font-size: 18px;
+  line-height: 1.5;
+  margin: 0 0 22px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modal-button {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font: 600 18px/1 "K2D", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  background: #fff;
+  color: #000;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-button.primary {
+  background: #4bc07f;
+}
+
+.modal-button.secondary {
+  background: #e4a058;
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dialogBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Colors */
 .green {
   background-color: #A8C8B1;

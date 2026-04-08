@@ -1,0 +1,176 @@
+/* Layout */
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100svh;
+    padding: clamp(16px, 3vw, 40px);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: clamp(22px, 4.2vw, 64px);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: clamp(360px, 50vw, 680px);
+}
+
+/* Toggle Switcher */
+.role-toggle {
+    display: flex;
+    margin-bottom: clamp(18px, 3vw, 36px);
+    border-bottom: 2px solid #eee;
+}
+
+.role-toggle button {
+    flex: 1;
+    padding: clamp(12px, 1.9vw, 20px);
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+    color: #888;
+    transition: 0.3s;
+}
+
+.role-toggle button.active {
+    color: #2c3e50;
+    border-bottom: 3px solid #2c3e50;
+}
+
+/* Forms */
+.login-form h2 {
+    margin-bottom: clamp(18px, 2.6vw, 32px);
+    color: #333;
+    font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+}
+
+.signup-form h2 {
+    margin-bottom: clamp(18px, 2.6vw, 32px);
+    color: #333;
+    font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+}
+
+.input-group {
+    margin-bottom: clamp(14px, 2vw, 22px);
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+    color: #666;
+}
+
+.input-group input {
+    width: 100%;
+    padding: clamp(12px, 1.8vw, 18px);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+}
+
+.input-group select {
+    width: 100%;
+    padding: clamp(12px, 1.8vw, 18px);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #fff;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+}
+
+/* Buttons */
+.login-btn {
+    width: 100%;
+    padding: clamp(12px, 1.8vw, 18px);
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+}
+
+.login-btn:hover {
+    background-color: #1a252f;
+}
+
+.signup-btn {
+    width: 100%;
+    padding: clamp(12px, 1.8vw, 18px);
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+}
+
+.signup-btn:hover {
+    background-color: #1a252f;
+}
+
+.signup-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.admin-theme {
+    background-color: #4a4a4a; /* Slightly different tone for Admin */
+}
+
+.form-message {
+    min-height: 1.2rem;
+    margin-top: clamp(12px, 1.8vw, 20px);
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+    color: #333;
+}
+
+.form-message.error {
+    color: #b42318;
+}
+
+.form-message.success {
+    color: #1f7a1f;
+}
+
+.back-link {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+}
+
+.back-link a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.back-link a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+    .role-toggle {
+        flex-direction: column;
+        border-bottom: none;
+        gap: 6px;
+    }
+
+    .role-toggle button {
+        border-bottom: 2px solid #eee;
+    }
+
+    .role-toggle button.active {
+        border-bottom-color: #2c3e50;
+    }
+}

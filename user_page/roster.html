@@ -18,7 +18,7 @@
         <img src="ticket.png" alt="Tickets" class="nav-icon">
       </a>
       <div class="user-wrap">
-        <span class="user-name">John Smith</span>
+        <span class="user-name" id="userName">Loading...</span>
         <a href="account.html" class="nav-link" aria-label="Account">
           <img src="account.png" alt="Account" class="nav-icon">
         </a>
@@ -47,15 +47,14 @@
           <span class="actions-head"></span>
         </div>
 
-        <div class="timing-row">
-          <span>Jane Smith</span>
-          <span>French Ballerinas</span>
-          <span>Day 2</span>
-          <span>6:30 PM</span>
-          <a href="tickets.html" class="link-btn">Link</a>
-        </div>
+        <div id="rosterRows"></div>
       </section>
     </main>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.config.js"></script>
+  <script src="script.js"></script>
+  <script src="roster.js"></script>
 </body>
 </html>

@@ -62,11 +62,698 @@
         </details>
       </div>
 
+      <dialog class="add-family-dialog" id="add-family-dialog" aria-labelledby="add-family-title">
+        <form class="dialog-form" id="add-family-form">
+          <div class="dialog-head">
+            <h2 id="add-family-title">Add Family</h2>
+            <button class="dialog-close" type="button" aria-label="Close">×</button>
+          </div>
+          <label class="field">
+            <span>Family name</span>
+            <input name="familyName" type="text" autocomplete="organization" required />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label class="field">
+            <span>Phone number</span>
+            <input name="phone" type="tel" autocomplete="tel" required />
+          </label>
+          <label class="field">
+            <span>Address</span>
+            <input name="address" type="text" autocomplete="street-address" required />
+          </label>
+          <div class="children-fields" aria-label="Children information">
+            <h3>Children</h3>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 1 name</span>
+                <input name="childName1" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 1 age</span>
+                <input name="childAge1" type="number" min="0" max="120" />
+              </label>
+            </div>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 2 name</span>
+                <input name="childName2" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 2 age</span>
+                <input name="childAge2" type="number" min="0" max="120" />
+              </label>
+            </div>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 3 name</span>
+                <input name="childName3" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 3 age</span>
+                <input name="childAge3" type="number" min="0" max="120" />
+              </label>
+            </div>
+            <div class="child-row">
+              <label class="field">
+                <span>Child 4 name</span>
+                <input name="childName4" type="text" autocomplete="name" />
+              </label>
+              <label class="field">
+                <span>Child 4 age</span>
+                <input name="childAge4" type="number" min="0" max="120" />
+              </label>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button class="secondary" type="button">Cancel</button>
+            <button class="primary" type="submit">Add Family</button>
+          </div>
+        </form>
+      </dialog>
+
+      <div class="modal-overlay" id="delete-family-modal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-family-title">
+          <h2 class="modal-title" id="delete-family-title">Delete Family</h2>
+          <p class="modal-body">
+            Delete this family? This will permanently delete the account of the family, and they will no longer be able to log in. If you want to change information, please click the edit button instead.
+          </p>
+          <div class="modal-actions">
+            <button class="modal-button secondary" type="button" id="cancel-delete-family">Cancel</button>
+            <button class="modal-button primary" type="button" id="confirm-delete-family">Delete Family</button>
+          </div>
+        </div>
+      </div>
+
       <div class="footer-actions">
         <button class="add-family" type="button">Add Family</button>
         <a href="admin-email.html"><button class="send-email" type="button">Send Email</button></a>
       </div>
     </section>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../login_page/supabase.config.js"></script>
+  <script>
+    const supabaseConfig = window.SUPABASE_CONFIG || {};
+    const supabaseUrl = supabaseConfig.url || "";
+    const supabaseAnonKey = supabaseConfig.anonKey || "";
+    const supabaseClient = (window.supabase && supabaseUrl && supabaseAnonKey)
+      ? window.supabase.createClient(supabaseUrl, supabaseAnonKey)
+      : null;
+
+    const addFamilyButton = document.querySelector(".add-family");
+    const addFamilyDialog = document.getElementById("add-family-dialog");
+    const addFamilyForm = document.getElementById("add-family-form");
+    const familiesList = document.querySelector(".families-list");
+    const dialogCloseButton = addFamilyDialog.querySelector(".dialog-close");
+    const dialogCancelButton = addFamilyDialog.querySelector(".dialog-actions .secondary");
+    const firstField = addFamilyDialog.querySelector("input[name=\"familyName\"]");
+    const dialogTitle = addFamilyDialog.querySelector("#add-family-title");
+    const dialogPrimaryButton = addFamilyDialog.querySelector(".dialog-actions .primary");
+    const familyNameInput = addFamilyDialog.querySelector("input[name=\"familyName\"]");
+    const emailInput = addFamilyDialog.querySelector("input[name=\"email\"]");
+    const phoneInput = addFamilyDialog.querySelector("input[name=\"phone\"]");
+    const addressInput = addFamilyDialog.querySelector("input[name=\"address\"]");
+    const childNameInputs = Array.from(addFamilyDialog.querySelectorAll("input[name^=\"childName\"]"));
+    const childAgeInputs = Array.from(addFamilyDialog.querySelectorAll("input[name^=\"childAge\"]"));
+    const deleteFamilyModal = document.getElementById("delete-family-modal");
+    const cancelDeleteFamilyButton = document.getElementById("cancel-delete-family");
+    const confirmDeleteFamilyButton = document.getElementById("confirm-delete-family");
+
+    let editingDetails = null;
+    let isSubmitting = false;
+    let pendingDeleteDetails = null;
+
+    const updateChevron = (details) => {
+      const chevron = details.querySelector(".chevron");
+      if (chevron) {
+        chevron.textContent = details.open ? "⌄" : "›";
+      }
+    };
+
+    const clearFamiliesList = () => {
+      familiesList.innerHTML = "";
+    };
+
+    const renderFamilyRow = (row) => {
+      const details = document.createElement("details");
+      details.className = "family-row";
+      if (row?.id) {
+        details.dataset.familyId = String(row.id);
+      }
+
+      const summary = document.createElement("summary");
+      const title = document.createElement("div");
+      title.className = "family-title";
+
+      const chevron = document.createElement("span");
+      chevron.className = "chevron";
+      chevron.textContent = "›";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "family-name";
+      nameSpan.textContent = row?.family_name || "Family";
+
+      title.appendChild(chevron);
+      title.appendChild(nameSpan);
+
+      const firstUser = Array.isArray(row?.users) && row.users.length > 0
+        ? row.users[0]
+        : null;
+      if (firstUser?.id) {
+        details.dataset.userId = String(firstUser.id);
+      }
+
+      const emailSpan = document.createElement("span");
+      emailSpan.className = "email";
+      const userEmail = firstUser?.email || "";
+      emailSpan.textContent = userEmail || "—";
+
+      const phoneSpan = document.createElement("span");
+      phoneSpan.className = "phone";
+      phoneSpan.textContent = formatPhone(row?.primary_phone) || "—";
+
+      const addressSpan = document.createElement("span");
+      addressSpan.className = "address";
+      addressSpan.textContent = row?.address || "—";
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const editButton = document.createElement("button");
+      editButton.className = "icon-btn icon-edit";
+      editButton.type = "button";
+      editButton.setAttribute("aria-label", "Edit family");
+      editButton.textContent = "✎";
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "icon-btn icon-delete";
+      deleteButton.type = "button";
+      deleteButton.setAttribute("aria-label", "Delete family");
+      deleteButton.textContent = "🗑";
+
+      actions.appendChild(editButton);
+      actions.appendChild(deleteButton);
+
+      summary.appendChild(title);
+      summary.appendChild(emailSpan);
+      summary.appendChild(phoneSpan);
+      summary.appendChild(addressSpan);
+      summary.appendChild(actions);
+
+      details.appendChild(summary);
+      const dancers = Array.isArray(row?.dancer) ? row.dancer : [];
+      if (dancers.length > 0) {
+        const childrenList = document.createElement("ul");
+        childrenList.className = "children";
+        dancers.forEach((child) => {
+          const item = document.createElement("li");
+          const label = String(child?.first_name || "").trim() || "Child";
+          const ageValue = Number(child?.age);
+          if (Number.isFinite(ageValue) && ageValue >= 0) {
+            item.textContent = `${label} ${ageValue} y/o`;
+          } else {
+            item.textContent = label;
+          }
+          childrenList.appendChild(item);
+        });
+        details.appendChild(childrenList);
+      }
+
+      details.addEventListener("toggle", () => updateChevron(details));
+      updateChevron(details);
+
+      familiesList.appendChild(details);
+      return details;
+    };
+
+    const showEmptyState = () => {
+      clearFamiliesList();
+      const empty = document.createElement("div");
+      empty.className = "family-row";
+      empty.style.padding = "16px";
+      empty.textContent = "No families found.";
+      familiesList.appendChild(empty);
+    };
+
+    const loadFamilies = async () => {
+      if (!supabaseClient) {
+        showEmptyState();
+        return;
+      }
+
+      try {
+        clearFamiliesList();
+        const { data, error } = await supabaseClient
+          .from("familyaccount")
+          .select("id, family_name, primary_phone, address, users(id, email), dancer(id, first_name, last_name, age)")
+          .order("family_name", { ascending: true });
+
+        if (error) {
+          throw error;
+        }
+
+        const rows = Array.isArray(data) ? data : [];
+        if (!rows.length) {
+          showEmptyState();
+          return;
+        }
+
+        rows.forEach((row) => renderFamilyRow(row));
+      } catch (err) {
+        showEmptyState();
+        console.error(err);
+      }
+    };
+
+    const setDialogMode = (mode) => {
+      if (mode === "edit") {
+        dialogTitle.textContent = "Edit Family";
+        dialogPrimaryButton.textContent = "Save Changes";
+      } else {
+        dialogTitle.textContent = "Add Family";
+        dialogPrimaryButton.textContent = "Add Family";
+      }
+    };
+
+    const setSubmittingState = (submitting) => {
+      isSubmitting = submitting;
+      dialogPrimaryButton.disabled = submitting;
+      dialogPrimaryButton.textContent = submitting
+        ? (editingDetails ? "Saving..." : "Adding...")
+        : (editingDetails ? "Save Changes" : "Add Family");
+    };
+
+    const formatPhone = (value) => {
+      const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    };
+
+    const splitName = (fullName) => {
+      const cleaned = String(fullName || "").trim().replace(/\s+/g, " ");
+      if (!cleaned) return { first_name: "", last_name: "" };
+      const parts = cleaned.split(" ");
+      if (parts.length === 1) return { first_name: cleaned, last_name: "" };
+      return {
+        first_name: parts[0],
+        last_name: parts.slice(1).join(" ")
+      };
+    };
+
+    const normalizeName = (fullName) => String(fullName || "").trim().replace(/\s+/g, " ");
+
+    const buildDancerRows = (familyId, familyName, list) => {
+      const safeId = Number(familyId);
+      if (!Number.isInteger(safeId) || safeId <= 0) return [];
+      const familyLastName = normalizeName(familyName);
+      return list
+        .map((child) => {
+          const cleanedName = normalizeName(child?.name);
+          const name = cleanedName ? { first_name: cleanedName, last_name: familyLastName } : splitName(child?.name);
+          const ageValue = Number(child?.age);
+          const age = Number.isFinite(ageValue) && ageValue >= 0 ? ageValue : null;
+          return { name, age };
+        })
+        .filter((item) => item.name.first_name || item.name.last_name)
+        .map((item) => ({
+          family_account_id: safeId,
+          first_name: item.name.first_name,
+          last_name: item.name.last_name,
+          age: item.age
+        }));
+    };
+
+    const openDialog = (details = null) => {
+      editingDetails = details;
+
+      if (details) {
+        familyNameInput.value = details.querySelector(".family-name")?.textContent?.trim() || "";
+        emailInput.value = details.querySelector(".email")?.textContent?.trim() || "";
+        phoneInput.value = formatPhone(details.querySelector(".phone")?.textContent?.trim() || "");
+        addressInput.value = details.querySelector(".address")?.textContent?.trim() || "";
+        childNameInputs.forEach((input) => {
+          input.value = "";
+        });
+        childAgeInputs.forEach((input) => {
+          input.value = "";
+        });
+
+        const childItems = Array.from(details.querySelectorAll(".children li"));
+        childItems.slice(0, 4).forEach((item, index) => {
+          const text = item.textContent || "";
+          const match = text.match(/^(.*?)(?:\s+)(\d+)\s*y\/o\s*$/i);
+          if (match) {
+            childNameInputs[index].value = match[1].trim();
+            childAgeInputs[index].value = match[2].trim();
+          } else {
+            childNameInputs[index].value = text.trim();
+          }
+        });
+        setDialogMode("edit");
+      } else {
+        addFamilyForm.reset();
+        setDialogMode("add");
+      }
+
+      addFamilyDialog.showModal();
+      firstField.focus();
+    };
+
+    const closeDialog = () => {
+      addFamilyForm.reset();
+      editingDetails = null;
+      setDialogMode("add");
+      addFamilyDialog.close();
+    };
+
+    addFamilyButton.addEventListener("click", () => {
+      openDialog();
+    });
+
+    dialogCloseButton.addEventListener("click", closeDialog);
+    dialogCancelButton.addEventListener("click", closeDialog);
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = formatPhone(phoneInput.value);
+    });
+
+    const openDeleteModal = (details) => {
+      pendingDeleteDetails = details;
+      deleteFamilyModal.classList.add("is-open");
+      deleteFamilyModal.setAttribute("aria-hidden", "false");
+    };
+
+    const closeDeleteModal = () => {
+      pendingDeleteDetails = null;
+      deleteFamilyModal.classList.remove("is-open");
+      deleteFamilyModal.setAttribute("aria-hidden", "true");
+    };
+
+    const performDelete = async (details) => {
+      const familyId = details?.dataset?.familyId;
+      if (!familyId || !supabaseClient) {
+        details?.remove();
+        return;
+      }
+
+      try {
+        const { error: dancerDeleteError } = await supabaseClient
+          .from("dancer")
+          .delete()
+          .eq("family_account_id", Number(familyId));
+
+        if (dancerDeleteError) {
+          throw dancerDeleteError;
+        }
+
+        const { error } = await supabaseClient
+          .from("familyaccount")
+          .delete()
+          .eq("id", Number(familyId));
+
+        if (error) {
+          throw error;
+        }
+
+        details?.remove();
+      } catch (err) {
+        alert(`Unable to delete family: ${err?.message || "Unknown error"}`);
+      }
+    };
+
+    cancelDeleteFamilyButton.addEventListener("click", closeDeleteModal);
+    confirmDeleteFamilyButton.addEventListener("click", async () => {
+      if (pendingDeleteDetails) {
+        await performDelete(pendingDeleteDetails);
+      }
+      closeDeleteModal();
+    });
+    deleteFamilyModal.addEventListener("click", (event) => {
+      if (event.target === deleteFamilyModal) {
+        closeDeleteModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && deleteFamilyModal.classList.contains("is-open")) {
+        closeDeleteModal();
+      }
+    });
+
+    familiesList.addEventListener("click", async (event) => {
+      const editButton = event.target.closest(".icon-edit");
+      const deleteButton = event.target.closest(".icon-delete");
+
+      if (!editButton && !deleteButton) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const details = event.target.closest("details.family-row");
+      if (!details) {
+        return;
+      }
+
+      if (editButton) {
+        openDialog(details);
+        return;
+      }
+
+      openDeleteModal(details);
+    });
+
+    addFamilyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(addFamilyForm);
+      const familyName = String(formData.get("familyName") || "").trim();
+      const email = String(formData.get("email") || "").trim();
+      const phone = formatPhone(String(formData.get("phone") || ""));
+      const address = String(formData.get("address") || "").trim();
+
+      if (!familyName || !email || !phone || !address) {
+        return;
+      }
+
+      if (isSubmitting) {
+        return;
+      }
+
+      const children = childNameInputs.map((input, index) => {
+        const name = input.value.trim();
+        const age = childAgeInputs[index].value.trim();
+        if (!name && !age) {
+          return null;
+        }
+        return { name, age };
+      }).filter(Boolean);
+
+      const upsertChildrenList = (details) => {
+        let childrenList = details.querySelector(".children");
+        if (!childrenList) {
+          childrenList = document.createElement("ul");
+          childrenList.className = "children";
+          details.appendChild(childrenList);
+        }
+
+        childrenList.innerHTML = "";
+        children.forEach((child) => {
+          const item = document.createElement("li");
+          if (child.age) {
+            item.textContent = `${child.name || "Child"} ${child.age} y/o`;
+          } else {
+            item.textContent = child.name || "Child";
+          }
+          childrenList.appendChild(item);
+        });
+
+        if (children.length === 0) {
+          childrenList.remove();
+        }
+      };
+
+      let insertedFamily = null;
+
+      if (!editingDetails) {
+        if (!supabaseClient) {
+          alert("Supabase is not configured. Add keys in login_page/supabase.config.js.");
+          return;
+        }
+
+        try {
+          setSubmittingState(true);
+          const { data, error } = await supabaseClient
+            .from("familyaccount")
+            .insert({
+              family_name: familyName,
+              primary_phone: phone,
+              address
+            })
+            .select("id, family_name, primary_phone, address, status")
+            .single();
+
+          if (error) {
+            throw error;
+          }
+
+          insertedFamily = data;
+
+          const { data: newUser, error: userInsertError } = await supabaseClient
+            .from("users")
+            .insert({
+              family_account_id: insertedFamily.id,
+              email,
+              first_name: "",
+              last_name: "",
+              role: "user",
+              password_hash: ""
+            })
+            .select("id, email")
+            .single();
+
+          if (userInsertError) {
+            await supabaseClient
+              .from("familyaccount")
+              .delete()
+              .eq("id", insertedFamily.id);
+            throw userInsertError;
+          }
+
+          if (newUser?.id) {
+            insertedFamily.users = [{ id: newUser.id, email: newUser.email }];
+          }
+
+          const dancerRows = buildDancerRows(insertedFamily.id, familyName, children);
+          if (dancerRows.length) {
+            const { error: dancerInsertError } = await supabaseClient
+              .from("dancer")
+              .insert(dancerRows);
+            if (dancerInsertError) {
+              if (newUser?.id) {
+                await supabaseClient
+                  .from("users")
+                  .delete()
+                  .eq("id", newUser.id);
+              }
+              await supabaseClient
+                .from("familyaccount")
+                .delete()
+                .eq("id", insertedFamily.id);
+              throw dancerInsertError;
+            }
+          }
+        } catch (err) {
+          alert(`Unable to add family: ${err?.message || "Unknown error"}`);
+          setSubmittingState(false);
+          return;
+        }
+      }
+
+      if (editingDetails) {
+        if (!supabaseClient) {
+          alert("Supabase is not configured. Add keys in login_page/supabase.config.js.");
+          return;
+        }
+
+        const familyId = Number(editingDetails.dataset.familyId);
+        const existingUserId = Number(editingDetails.dataset.userId);
+        try {
+          setSubmittingState(true);
+          const { error } = await supabaseClient
+            .from("familyaccount")
+            .update({
+              family_name: familyName,
+              primary_phone: phone,
+              address
+            })
+            .eq("id", familyId);
+
+          if (error) {
+            throw error;
+          }
+
+          if (email) {
+            if (Number.isInteger(existingUserId) && existingUserId > 0) {
+              const { error: userUpdateError } = await supabaseClient
+                .from("users")
+                .update({ email })
+                .eq("id", existingUserId);
+              if (userUpdateError) {
+                throw userUpdateError;
+              }
+            } else {
+              const { data: newUser, error: userInsertError } = await supabaseClient
+                .from("users")
+                .insert({
+                  family_account_id: familyId,
+                  email,
+                  first_name: "",
+                  last_name: "",
+                  role: "user",
+                  password_hash: ""
+                })
+                .select("id")
+                .single();
+              if (userInsertError) {
+                throw userInsertError;
+              }
+              if (newUser?.id) {
+                editingDetails.dataset.userId = String(newUser.id);
+              }
+            }
+          }
+
+          const dancerRows = buildDancerRows(familyId, familyName, children);
+          const { error: dancerDeleteError } = await supabaseClient
+            .from("dancer")
+            .delete()
+            .eq("family_account_id", familyId);
+          if (dancerDeleteError) {
+            throw dancerDeleteError;
+          }
+          if (dancerRows.length) {
+            const { error: dancerInsertError } = await supabaseClient
+              .from("dancer")
+              .insert(dancerRows);
+            if (dancerInsertError) {
+              throw dancerInsertError;
+            }
+          }
+
+          editingDetails.querySelector(".family-name").textContent = familyName;
+          editingDetails.querySelector(".email").textContent = email || "—";
+          editingDetails.querySelector(".phone").textContent = phone;
+          editingDetails.querySelector(".address").textContent = address;
+          upsertChildrenList(editingDetails);
+          closeDialog();
+          setSubmittingState(false);
+          return;
+        } catch (err) {
+          alert(`Unable to update family: ${err?.message || "Unknown error"}`);
+          setSubmittingState(false);
+          return;
+        }
+      }
+
+      const details = renderFamilyRow({
+        id: insertedFamily?.id,
+        family_name: familyName,
+        primary_phone: phone,
+        address,
+        users: insertedFamily?.users || [{ email }]
+      });
+      upsertChildrenList(details);
+
+      setSubmittingState(false);
+      closeDialog();
+    });
+
+    loadFamilies();
+  </script>
 </body>
 </html>

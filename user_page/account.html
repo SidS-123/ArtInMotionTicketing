@@ -18,7 +18,7 @@
         <img src="ticket.png" alt="Tickets" class="nav-icon">
       </a>
       <div class="user-wrap">
-        <span class="user-name">John Smith</span>
+        <span class="user-name" id="userName">Loading...</span>
         <a href="account.html" class="nav-link is-active" aria-label="Account" aria-current="page">
           <img src="account.png" alt="Account" class="nav-icon">
         </a>
@@ -39,8 +39,6 @@
           <div id="dashboardParents">
             <p>Loading parents...</p>
           </div>
-          <p class="settings">Settings</p>
-          <button type="button" class="signout-btn">Sign out</button>
         </article>
 
         <article class="profile-card">
@@ -54,12 +52,11 @@
           <section class="tickets-panel">
             <p class="redeemable-line">
               <span>Redeemable Tickets Avaliable:</span>
-              <span id="redeemableAvailable" class="redeem-pill">4</span>
+              <span id="freeTickets" class="redeem-pill">0</span>
             </p>
             <p>Recitals Booked:</p>
-            <ul>
-              <li>Recital 1</li>
-              <li>Recital 2</li>
+            <ul id="recitalList">
+              <li>Loading recitals...</li>
             </ul>
           </section>
         </article>
@@ -67,22 +64,8 @@
     </main>
   </div>
 
-  <script>
-    const REDEEMABLE_LIMIT = 4;
-    const redeemableEl = document.getElementById("redeemableAvailable");
-    const raw = localStorage.getItem("aimCartTickets");
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.totals) {
-          const freeTicketsUsed = Number(parsed.totals.freeTickets || 0);
-          const redeemableRemaining = Math.max(0, REDEEMABLE_LIMIT - freeTicketsUsed);
-          redeemableEl.textContent = String(redeemableRemaining);
-        }
-      } catch (error) {
-        // Ignore malformed cart data and keep default value.
-      }
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.config.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

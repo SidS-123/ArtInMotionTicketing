@@ -19,7 +19,7 @@
         <img src="ticket.png" alt="Tickets" class="nav-icon">
       </a>
       <div class="user-wrap">
-        <span class="user-name">John Smith</span>
+        <span class="user-name" id="userName">Loading...</span>
         <a href="account.html" class="nav-link" aria-label="Account">
           <img src="account.png" alt="Account" class="nav-icon">
         </a>
@@ -33,9 +33,11 @@
     </header>
 
     <main class="tickets-main">
-      <section class="day-switch" aria-label="Day selection">
-        <button type="button" class="day-btn" data-day="day1">Day 1</button>
-        <button type="button" class="day-btn is-active" data-day="day2">Day 2</button>
+      <section class="day-switch" aria-label="Recital selection">
+        <label for="recitalSelect" class="recital-label">Recital</label>
+        <select id="recitalSelect" class="recital-select" aria-label="Select recital">
+          <option value="">Loading...</option>
+        </select>
       </section>
 
       <section class="content-grid">
