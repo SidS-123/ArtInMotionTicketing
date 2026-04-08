@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Seat Labeler V2.4 (The Full Package)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #e1faf4; }
+        .toolbar { background: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .visual-bar { background: #fff3cd; padding: 10px 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ffe69c; display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        input, select { padding: 6px; font-size: 14px; text-align: center; border: 2px solid #ccc; border-radius: 6px; }
+        button { padding: 8px 16px; font-size: 14px; background: #1a5b82; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .danger { background: #ff4b4b; }
+        .success { background: #27ae60; }
+        canvas { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); cursor: crosshair; }
+        .control-group { background: #f8f9fa; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; gap: 10px; align-items: center; }
+        #status { margin-left: auto; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <input type="file" id="fileUpload" accept=".json">
+        
+        <div class="control-group">
+            <label><strong>Tier:</strong></label>
+            <select id="seatType">
+                <option value="reg">Regular</option>
+                <option value="lux">Luxury</option>
+            </select>
+
+            <label>Prefix:</label>
+            <input type="text" id="prefix" placeholder="e.g. L-" style="width: 50px;">
+            
+            <label>Row:</label>
+            <input type="text" id="rowLetter" value="A" style="width: 40px;">
+            
+            <label>Start #:</label>
+            <input type="number" id="startNum" value="101" style="width: 60px;">
+
+            <label style="color: #d35400;"><strong>Step:</strong></label>
+            <input type="number" id="step" value="2" style="width: 45px; border: 2px solid #d35400;">
+        </div>
+
+        <button id="undoBtn" class="danger">Undo</button>
+        <button id="downloadBtn" class="success">Download JSON</button>
+        
+        <div id="status">Mapped: 0</div>
+    </div>
+
+    <div class="visual-bar">
+        <label>Zoom:</label> <input type="number" id="mapScale" value="1" step="0.5" style="width: 60px;">
+        <label>Move X:</label> <input type="number" id="offsetX" value="0" step="50" style="width: 60px;">
+        <label>Move Y:</label> <input type="number" id="offsetY" value="0" step="50" style="width: 60px;">
+    </div>
+
+    <canvas id="canvas" width="1419" height="988"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let seats = [];
+        let isSwiping = false;
+        let currentSwipeQueue = [];
+        let history = []; 
+        const DOT_RADIUS = 6;
+
+        document.getElementById('mapScale').addEventListener('input', drawMap);
+        document.getElementById('offsetX').addEventListener('input', drawMap);
+        document.getElementById('offsetY').addEventListener('input', drawMap);
+
+        document.getElementById('fileUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = JSON.parse(event.target.result);
+                seats = data.seats || data; 
+                seats.forEach(s => s.labeled = false);
+                drawMap();
+            };
+            reader.readAsText(file);
+        });
+
+        function drawMap() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let mappedCount = 0;
+            const scale = Number(document.getElementById('mapScale').value) || 1;
+            const offsetX = Number(document.getElementById('offsetX').value) || 0;
+            const offsetY = Number(document.getElementById('offsetY').value) || 0;
+
+            seats.forEach(seat => {
+                const px = (Number(seat.x) * scale) + offsetX;
+                const py = (Number(seat.y) * scale) + offsetY;
+                ctx.beginPath();
+                ctx.arc(px, py, DOT_RADIUS, 0, Math.PI * 2);
+
+                if (seat.labeled) {
+                    ctx.fillStyle = seat.type === 'lux' ? '#f1c40f' : '#3498db'; 
+                    ctx.fill();
+                    ctx.fillStyle = '#000'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center';
+                    ctx.fillText(seat.id, px, py - 10);
+                    mappedCount++;
+                } else if (currentSwipeQueue.includes(seat)) {
+                    ctx.fillStyle = '#e74c3c'; ctx.fill();
+                } else {
+                    ctx.fillStyle = '#bdc3c7'; ctx.fill();
+                }
+            });
+            document.getElementById('status').innerText = `Mapped: ${mappedCount} / ${seats.length}`;
+        }
+
+        canvas.addEventListener('mousedown', () => { isSwiping = true; currentSwipeQueue = []; });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isSwiping || seats.length === 0) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const scale = Number(document.getElementById('mapScale').value) || 1;
+            const offsetX = Number(document.getElementById('offsetX').value) || 0;
+            const offsetY = Number(document.getElementById('offsetY').value) || 0;
+
+            seats.forEach(seat => {
+                if (seat.labeled || currentSwipeQueue.includes(seat)) return;
+                const px = (Number(seat.x) * scale) + offsetX;
+                const py = (Number(seat.y) * scale) + offsetY;
+                const dist = Math.sqrt(Math.pow(mouseX - px, 2) + Math.pow(mouseY - py, 2));
+                if (dist < DOT_RADIUS + 15) {
+                    currentSwipeQueue.push(seat);
+                    drawMap();
+                }
+            });
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (!isSwiping || currentSwipeQueue.length === 0) { isSwiping = false; return; }
+
+            const type = document.getElementById('seatType').value;
+            const prefix = document.getElementById('prefix').value.trim();
+            const rowLetterInput = document.getElementById('rowLetter');
+            const rowLetter = rowLetterInput.value.trim().toUpperCase();
+            const startNum = parseInt(document.getElementById('startNum').value) || 1;
+            const step = parseInt(document.getElementById('step').value) || 1;
+            
+            history.push([...currentSwipeQueue]);
+
+            currentSwipeQueue.forEach((seat, index) => {
+                seat.labeled = true;
+                seat.type = type;
+                let currentNum = startNum + (index * step); // This uses the Step logic again!
+                seat.id = prefix ? `${prefix}${rowLetter}-${currentNum}` : `${rowLetter}-${currentNum}`;
+            });
+
+            // Auto-advance row letter
+            let carry = 1, res = "";
+            for (let i = rowLetter.length - 1; i >= 0; i--) {
+                let charCode = rowLetter.charCodeAt(i) + carry;
+                if (charCode > 90) { carry = 1; charCode = 65; } else { carry = 0; }
+                res = String.fromCharCode(charCode) + res;
+            }
+            if (carry) res = "A" + res;
+            rowLetterInput.value = res;
+
+            isSwiping = false;
+            currentSwipeQueue = [];
+            drawMap();
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (history.length === 0) return;
+            const lastSwipe = history.pop();
+            lastSwipe.forEach(seat => { seat.labeled = false; delete seat.id; delete seat.type; });
+            drawMap();
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const finalData = seats.filter(s => s.labeled).map(s => ({
+                id: s.id,
+                x: s.x,
+                y: s.y,
+                type: s.type
+            }));
+            const blob = new Blob([JSON.stringify(finalData, null, 4)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = "final-seatmap.json"; a.click();
+        });
+    </script>
+</body>
+</html>

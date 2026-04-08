@@ -103,6 +103,33 @@ function findColumnName(row, candidates) {
     return null;
 }
 
+function getUserProfileFromRow(row) {
+    if (!row || typeof row !== 'object') return null;
+
+    const firstNameCol = findColumnName(row, ['first_name', 'firstname', 'first']);
+    const lastNameCol = findColumnName(row, ['last_name', 'lastname', 'last']);
+    const fullNameCol = findColumnName(row, ['full_name', 'fullname', 'name']);
+    const emailCol = findColumnName(row, columnCandidates.users.email);
+    const familyIdCol = findColumnName(row, ['family_account_id', 'familyaccountid', 'family_id']);
+    const idCol = findColumnName(row, columnCandidates.users.id);
+
+    const firstName = firstNameCol ? row[firstNameCol] : '';
+    const lastName = lastNameCol ? row[lastNameCol] : '';
+    const fullName = fullNameCol ? row[fullNameCol] : '';
+    const email = emailCol ? row[emailCol] : '';
+    const familyAccountId = familyIdCol ? row[familyIdCol] : null;
+    const id = idCol ? row[idCol] : null;
+
+    return {
+        firstName,
+        lastName,
+        fullName,
+        email,
+        familyAccountId,
+        id
+    };
+}
+
 function setButtonLoading(button, loading, loadingText) {
     if (!button) return;
     if (!button.dataset.defaultText) {
@@ -173,6 +200,9 @@ async function authenticateUsersTable(identifier, password, requiredRole = '') {
     }
 
     const matched = Array.isArray(matchRows) ? matchRows[0] : null;
+    if (!matched) {
+        throw new Error('Invalid email or password.');
+    }
     if (requiredRole && roleCol) {
         const matchedRole = normalize(matched[roleCol]);
         if (matchedRole !== normalize(requiredRole)) {
@@ -432,8 +462,19 @@ async function handleUserLoginSubmit(e) {
     const password = String(passwordInput.value || '');
 
     try {
-        await authenticateUsersTable(email, password, '');
-        await finalizeLoginRoute(roleValue);
+        const matched = await authenticateUsersTable(email, password, '');
+        const profile = getUserProfileFromRow(matched);
+        if (profile) {
+            localStorage.setItem('aim_user', JSON.stringify(profile));
+        }
+        const redirectUrl = new URL(userRedirectPath, window.location.href);
+        if (profile?.email) redirectUrl.searchParams.set('email', profile.email);
+        if (profile?.firstName) redirectUrl.searchParams.set('firstName', profile.firstName);
+        if (profile?.lastName) redirectUrl.searchParams.set('lastName', profile.lastName);
+        if (profile?.familyAccountId != null) {
+            redirectUrl.searchParams.set('familyAccountId', String(profile.familyAccountId));
+        }
+        window.location.href = redirectUrl.toString();
     } catch (err) {
         alert('Username or password incorrect');
     } finally {

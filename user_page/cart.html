@@ -18,7 +18,7 @@
         <img src="ticket.png" alt="Tickets" class="nav-icon">
       </a>
       <div class="user-wrap">
-        <span class="user-name">John Smith</span>
+        <span class="user-name" id="userName">Loading...</span>
         <a href="account.html" class="nav-link" aria-label="Account">
           <img src="account.png" alt="Account" class="nav-icon">
         </a>
@@ -47,18 +47,7 @@
               <span><span id="luxuryTicketCount">0</span>x Luxury Ticket</span>
               <span id="luxuryTicketAmount">$0.00</span>
             </div>
-            <div class="line-item">
-              <span><span id="flowerCount">0</span>x Flower</span>
-              <span id="flowerAmount">$0.00</span>
-            </div>
-            <div class="line-item">
-              <span><span id="other1Count">0</span>x Other Product 1</span>
-              <span id="other1Amount">$0.00</span>
-            </div>
-            <div class="line-item">
-              <span><span id="other2Count">0</span>x Other Product 2</span>
-              <span id="other2Amount">$0.00</span>
-            </div>
+            <div id="productSummaryList" aria-live="polite"></div>
 
             <hr>
 
@@ -79,205 +68,22 @@
             </div>
           </article>
 
-          <button type="button" class="checkout-btn">Continue with Payment (button)</button>
+          <button type="button" id="checkoutBtn" class="checkout-btn">Continue with Payment</button>
           <button type="button" id="resetTicketsBtn" class="reset-tickets-btn">Reset tickets</button>
+          <p id="cartStatus" class="cart-status" aria-live="polite"></p>
         </div>
 
         <aside class="products-col" aria-label="Add-on products">
-          <article class="product-card" data-product-id="flowers">
-            <div class="img-box">img</div>
-            <p class="product-name">Flowers</p>
-            <div class="controls">
-              <button type="button" class="add-btn">Add</button>
-              <button type="button" class="reset-btn">Reset</button>
-              <div class="qty-row">
-                <button type="button" class="qty-btn" data-action="decrement">-</button>
-                <span class="qty-value">0</span>
-                <button type="button" class="qty-btn" data-action="increment">+</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="product-card" data-product-id="other1">
-            <div class="img-box">img</div>
-            <p class="product-name">Other Product 1</p>
-            <div class="controls">
-              <button type="button" class="add-btn">Add</button>
-              <button type="button" class="reset-btn">Reset</button>
-              <div class="qty-row">
-                <button type="button" class="qty-btn" data-action="decrement">-</button>
-                <span class="qty-value">0</span>
-                <button type="button" class="qty-btn" data-action="increment">+</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="product-card" data-product-id="other2">
-            <div class="img-box">img</div>
-            <p class="product-name">Other Product 2</p>
-            <div class="controls">
-              <button type="button" class="add-btn">Add</button>
-              <button type="button" class="reset-btn">Reset</button>
-              <div class="qty-row">
-                <button type="button" class="qty-btn" data-action="decrement">-</button>
-                <span class="qty-value">0</span>
-                <button type="button" class="qty-btn" data-action="increment">+</button>
-              </div>
-            </div>
-          </article>
+          <div id="productsList"></div>
+          <p id="productsEmptyState" class="products-empty" hidden>No active products available.</p>
         </aside>
       </section>
     </main>
   </div>
 
-  <script>
-    const CART_TICKET_KEY = "aimCartTickets";
-    const FLOWER_PRICE = 4.39;
-    const OTHER_PRODUCT_PRICE = 10.0;
-    const TAX_RATE = 0.0931;
-
-    const freeTicketCountEl = document.getElementById("freeTicketCount");
-    const freeTicketAmountEl = document.getElementById("freeTicketAmount");
-    const regularTicketCountEl = document.getElementById("regularTicketCount");
-    const regularTicketAmountEl = document.getElementById("regularTicketAmount");
-    const luxuryTicketCountEl = document.getElementById("luxuryTicketCount");
-    const luxuryTicketAmountEl = document.getElementById("luxuryTicketAmount");
-    const flowerCountEl = document.getElementById("flowerCount");
-    const flowerAmountEl = document.getElementById("flowerAmount");
-    const other1CountEl = document.getElementById("other1Count");
-    const other1AmountEl = document.getElementById("other1Amount");
-    const other2CountEl = document.getElementById("other2Count");
-    const other2AmountEl = document.getElementById("other2Amount");
-    const subtotalAmountEl = document.getElementById("subtotalAmount");
-    const taxAmountEl = document.getElementById("taxAmount");
-    const totalAmountEl = document.getElementById("totalAmount");
-    const resetTicketsBtn = document.getElementById("resetTicketsBtn");
-
-    const productState = {
-      flowers: { selectorQty: 0, inCartQty: 0 },
-      other1: { selectorQty: 0, inCartQty: 0 },
-      other2: { selectorQty: 0, inCartQty: 0 }
-    };
-
-    const ticketSummary = {
-      freeTickets: 0,
-      regularTickets: 0,
-      luxuryTickets: 0,
-      regularAmount: 0,
-      luxuryAmount: 0,
-      ticketSubtotal: 0
-    };
-
-    function toMoney(amount) {
-      return `$${amount.toFixed(2)}`;
-    }
-
-    function loadTicketSummary() {
-      const raw = localStorage.getItem(CART_TICKET_KEY);
-      if (!raw) {
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.totals) {
-          return;
-        }
-        ticketSummary.freeTickets = Number(parsed.totals.freeTickets || 0);
-        ticketSummary.regularTickets = Number(parsed.totals.regularTickets || 0);
-        ticketSummary.luxuryTickets = Number(parsed.totals.luxuryTickets || 0);
-        ticketSummary.regularAmount = Number(parsed.totals.regularAmount || 0);
-        ticketSummary.luxuryAmount = Number(parsed.totals.luxuryAmount || 0);
-        ticketSummary.ticketSubtotal = Number(parsed.totals.ticketSubtotal || 0);
-      } catch (error) {
-        // Keep defaults if cart storage is malformed.
-      }
-    }
-
-    function updateSummary() {
-      const flowerQty = productState.flowers.inCartQty;
-      const other1Qty = productState.other1.inCartQty;
-      const other2Qty = productState.other2.inCartQty;
-      const flowerTotal = flowerQty * FLOWER_PRICE;
-      const other1Total = other1Qty * OTHER_PRODUCT_PRICE;
-      const other2Total = other2Qty * OTHER_PRODUCT_PRICE;
-      const subtotal = ticketSummary.ticketSubtotal + flowerTotal + other1Total + other2Total;
-      const tax = subtotal * TAX_RATE;
-      const total = subtotal + tax;
-
-      freeTicketCountEl.textContent = String(ticketSummary.freeTickets);
-      freeTicketAmountEl.textContent = "$0.00";
-      regularTicketCountEl.textContent = String(ticketSummary.regularTickets);
-      regularTicketAmountEl.textContent = toMoney(ticketSummary.regularAmount);
-      luxuryTicketCountEl.textContent = String(ticketSummary.luxuryTickets);
-      luxuryTicketAmountEl.textContent = toMoney(ticketSummary.luxuryAmount);
-      flowerCountEl.textContent = String(flowerQty);
-      flowerAmountEl.textContent = toMoney(flowerTotal);
-      other1CountEl.textContent = String(other1Qty);
-      other1AmountEl.textContent = toMoney(other1Total);
-      other2CountEl.textContent = String(other2Qty);
-      other2AmountEl.textContent = toMoney(other2Total);
-      subtotalAmountEl.textContent = toMoney(subtotal);
-      taxAmountEl.textContent = toMoney(tax);
-      totalAmountEl.textContent = toMoney(total);
-    }
-
-    function resetTickets() {
-      ticketSummary.freeTickets = 0;
-      ticketSummary.regularTickets = 0;
-      ticketSummary.luxuryTickets = 0;
-      ticketSummary.regularAmount = 0;
-      ticketSummary.luxuryAmount = 0;
-      ticketSummary.ticketSubtotal = 0;
-      localStorage.removeItem(CART_TICKET_KEY);
-      updateSummary();
-    }
-
-    document.querySelectorAll(".product-card").forEach((card) => {
-      const productId = card.dataset.productId;
-      const qtyValue = card.querySelector(".qty-value");
-      const addButton = card.querySelector(".add-btn");
-      const resetButton = card.querySelector(".reset-btn");
-      const qtyButtons = card.querySelectorAll(".qty-btn");
-
-      function syncQty() {
-        qtyValue.textContent = String(productState[productId].selectorQty);
-      }
-
-      addButton.addEventListener("click", () => {
-        const selected = productState[productId].selectorQty;
-        if (selected > 0) {
-          productState[productId].inCartQty += selected;
-          productState[productId].selectorQty = 0;
-          syncQty();
-        }
-        updateSummary();
-      });
-
-      resetButton.addEventListener("click", () => {
-        productState[productId].selectorQty = 0;
-        productState[productId].inCartQty = 0;
-        syncQty();
-        updateSummary();
-      });
-
-      qtyButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const action = button.dataset.action;
-          if (action === "increment") {
-            productState[productId].selectorQty += 1;
-          } else {
-            productState[productId].selectorQty = Math.max(0, productState[productId].selectorQty - 1);
-          }
-          syncQty();
-        });
-      });
-
-      syncQty();
-    });
-
-    loadTicketSummary();
-    updateSummary();
-    resetTicketsBtn.addEventListener("click", resetTickets);
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.config.js"></script>
+  <script src="script.js"></script>
+  <script src="cart.js"></script>
 </body>
 </html>
