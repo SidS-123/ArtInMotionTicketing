@@ -310,6 +310,42 @@ async function loadProducts() {
   }));
 }
 
+async function loadFamilyFreeTicketsBalance(familyAccountId) {
+  if (!familyAccountId) return 0;
+
+  const { data, error } = await cartSupabaseClient
+    .from("familyaccount")
+    .select("free_tickets_balance")
+    .eq("id", familyAccountId)
+    .single();
+
+  if (error) throw error;
+  return Number(data?.free_tickets_balance || 0);
+}
+
+function reconcileTicketSummaryWithBalance(freeTicketsBalance) {
+  const regularSeatCount = cartState.ticketSummary.seatIds.reg.length;
+  const luxurySeatCount = cartState.ticketSummary.seatIds.lux.length;
+  const freeTickets = Math.min(Math.max(0, Number(freeTicketsBalance || 0)), regularSeatCount);
+  const regularTickets = Math.max(0, regularSeatCount - freeTickets);
+  const regularAmount = regularTickets * Number(cartState.ticketSummary.pricing.regPrice || 0);
+  const luxuryAmount = luxurySeatCount * Number(cartState.ticketSummary.pricing.luxPrice || 0);
+
+  cartState.ticketSummary = {
+    ...cartState.ticketSummary,
+    freeTickets,
+    regularTickets,
+    luxuryTickets: luxurySeatCount,
+    regularAmount,
+    luxuryAmount,
+    ticketSubtotal: regularAmount + luxuryAmount,
+    pricing: {
+      ...cartState.ticketSummary.pricing,
+      freeTicketsBalance: Number(freeTicketsBalance || 0)
+    }
+  };
+}
+
 async function loadTicketTypes() {
   const { data, error } = await cartSupabaseClient
     .from("tickettype")
@@ -474,6 +510,10 @@ async function handleCheckout() {
   setStatus("Saving your cart to the database...", "info");
 
   try {
+    const currentFreeTicketsBalance = await loadFamilyFreeTicketsBalance(cartState.familyAccountId);
+    reconcileTicketSummaryWithBalance(currentFreeTicketsBalance);
+    renderSummary();
+
     let regularTicketTypeId = null;
     let luxuryTicketTypeId = null;
 
@@ -535,6 +575,22 @@ async function handleCheckout() {
 
       if (purchaseItemError) {
         throw purchaseItemError;
+      }
+    }
+
+    if (cartState.ticketSummary.freeTickets > 0) {
+      const nextFreeTicketBalance = Math.max(
+        0,
+        currentFreeTicketsBalance - cartState.ticketSummary.freeTickets
+      );
+
+      const { error: familyUpdateError } = await cartSupabaseClient
+        .from("familyaccount")
+        .update({ free_tickets_balance: nextFreeTicketBalance })
+        .eq("id", cartState.familyAccountId);
+
+      if (familyUpdateError) {
+        throw familyUpdateError;
       }
     }
 
