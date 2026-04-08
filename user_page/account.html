@@ -35,8 +35,10 @@
       <section class="account-grid">
         <article class="dashboard-card">
           <h1>Dashboard</h1>
-          <p>Parent: Parent 1</p>
-          <p>Parent: Parent 2</p>
+          <p id="dashboardFamilyName">Family: Loading...</p>
+          <div id="dashboardParents">
+            <p>Loading parents...</p>
+          </div>
           <p class="settings">Settings</p>
           <button type="button" class="signout-btn">Sign out</button>
         </article>
@@ -44,20 +46,8 @@
         <article class="profile-card">
           <h2>Children's Profile</h2>
 
-          <div class="children-grid">
-            <section class="child-card">
-              <div class="avatar"></div>
-              <p>Jane Smith</p>
-              <p>Recital: French Ballerinas</p>
-              <button type="button" class="manage-btn">Manage Profile</button>
-            </section>
-
-            <section class="child-card">
-              <div class="avatar"></div>
-              <p>Name 2</p>
-              <p>Recital: name</p>
-              <button type="button" class="manage-btn">Manage Profile</button>
-            </section>
+          <div id="childrenGrid" class="children-grid">
+            <p>Loading dancers...</p>
           </div>
 
           <h3>Tickets and Recitals</h3>
