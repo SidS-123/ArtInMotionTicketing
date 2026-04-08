@@ -16,7 +16,7 @@
     const submitButton = form?.querySelector('button[type="submit"]');
     const formMessage = document.getElementById('formMessage');
     const familySelect = document.getElementById('family');
-    let familiesAvailable = true;
+    let signupAvailable = true;
 
     function setMessage(text, type = '') {
         if (!formMessage) return;
@@ -27,17 +27,20 @@
 
     function setLoading(isLoading) {
         if (!submitButton) return;
-        submitButton.disabled = isLoading || !familiesAvailable;
+        submitButton.disabled = isLoading || !signupAvailable;
         submitButton.textContent = isLoading ? 'Creating Account...' : 'Sign Up';
     }
 
-    function setFamilyAvailability(isAvailable) {
-        familiesAvailable = isAvailable;
-        if (familySelect) {
-            familySelect.disabled = !isAvailable;
-        }
+    function setSignupAvailability(isAvailable) {
+        signupAvailable = isAvailable;
         if (submitButton) {
             submitButton.disabled = !isAvailable;
+        }
+    }
+
+    function setFamilySelectionAvailability(isAvailable) {
+        if (familySelect) {
+            familySelect.disabled = !isAvailable;
         }
     }
 
@@ -47,10 +50,14 @@
 
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = 'Select Family';
-        placeholder.disabled = true;
+        placeholder.textContent = 'Select Existing Family (Optional)';
         placeholder.selected = true;
         familySelect.appendChild(placeholder);
+    }
+
+    function isSelectableFamily(row) {
+        const status = String(row?.status || '').trim().toLowerCase();
+        return !status || status === 'active';
     }
 
     function isDuplicateEmailError(error) {
@@ -69,7 +76,8 @@
         resetFamilyOptions();
 
         if (!supabaseClient) {
-            setFamilyAvailability(false);
+            setSignupAvailability(false);
+            setFamilySelectionAvailability(false);
             setMessage('Sign up is unavailable until Supabase is configured.', 'error');
             return;
         }
@@ -77,29 +85,32 @@
         const { data: familyRows, error } = await supabaseClient
             .from(familyTable)
             .select('id, family_name, status')
-            .eq('status', 'active')
             .order('family_name', { ascending: true });
 
         if (error) {
-            setFamilyAvailability(false);
-            setMessage(`Could not load families: ${error.message}`, 'error');
+            setSignupAvailability(true);
+            setFamilySelectionAvailability(false);
+            setMessage(`Could not load families. You can still sign up and a family will be created automatically: ${error.message}`, 'error');
             return;
         }
 
-        if (!Array.isArray(familyRows) || familyRows.length === 0) {
-            setFamilyAvailability(false);
-            setMessage('No active families are available right now.', 'error');
-            return;
-        }
+        const selectableFamilyRows = Array.isArray(familyRows)
+            ? familyRows.filter((row) => Number.isInteger(Number(row?.id)) && isSelectableFamily(row))
+            : [];
 
-        familyRows.forEach((row) => {
+        selectableFamilyRows.forEach((row) => {
             const option = document.createElement('option');
             option.value = String(row.id);
             option.textContent = String(row.family_name || '').trim() || `Family #${row.id}`;
             familySelect?.appendChild(option);
         });
 
-        setFamilyAvailability(true);
+        setSignupAvailability(true);
+        setFamilySelectionAvailability(true);
+        if (selectableFamilyRows.length === 0) {
+            setMessage('No existing families found. Continue signup and we will create one automatically.', '');
+            return;
+        }
         setMessage('');
     }
 
@@ -110,7 +121,7 @@
         const firstName = (document.getElementById('firstName')?.value || '').trim();
         const lastName = (document.getElementById('lastName')?.value || '').trim();
         const password = document.getElementById('password')?.value || '';
-        const familyAccountId = Number(familySelect?.value);
+        const selectedFamilyAccountId = Number(familySelect?.value);
 
         if (!email || !firstName || !lastName || !password) {
             setMessage('Please fill out all fields.', 'error');
@@ -141,14 +152,30 @@
                 return;
             }
 
-            if (!familySelect?.value) {
-                setMessage('Please select a family.', 'error');
-                return;
-            }
+            let familyAccountId = null;
+            let createdFamilyAccountId = null;
+            if (familySelect?.value && Number.isInteger(selectedFamilyAccountId) && selectedFamilyAccountId > 0) {
+                familyAccountId = selectedFamilyAccountId;
+            } else {
+                const { data: newFamily, error: familyCreateError } = await supabaseClient
+                    .from(familyTable)
+                    .insert({
+                        family_name: lastName
+                    })
+                    .select('id')
+                    .single();
 
-            if (!Number.isInteger(familyAccountId) || familyAccountId <= 0) {
-                setMessage('Invalid family selection.', 'error');
-                return;
+                if (familyCreateError) {
+                    throw new Error(`Could not create family for signup: ${familyCreateError.message}`);
+                }
+
+                const parsedNewFamilyId = Number(newFamily?.id);
+                if (!Number.isInteger(parsedNewFamilyId) || parsedNewFamilyId <= 0) {
+                    throw new Error('Family creation returned an invalid ID.');
+                }
+
+                familyAccountId = parsedNewFamilyId;
+                createdFamilyAccountId = parsedNewFamilyId;
             }
 
             const userRow = {
@@ -165,6 +192,13 @@
                 .insert(userRow);
 
             if (userInsertError) {
+                if (createdFamilyAccountId) {
+                    await supabaseClient
+                        .from(familyTable)
+                        .delete()
+                        .eq('id', createdFamilyAccountId);
+                }
+
                 if (isDuplicateEmailError(userInsertError)) {
                     showDuplicateEmailPopup();
                     return;
@@ -185,7 +219,12 @@
             form.reset();
             resetFamilyOptions();
             await loadFamilyOptions();
-            setMessage('Account created and linked to the selected family.', 'success');
+            setMessage(
+                createdFamilyAccountId
+                    ? 'Account created and linked to your new family.'
+                    : 'Account created and linked to the selected family.',
+                'success'
+            );
         } catch (err) {
             setMessage(err?.message || 'Could not create account.', 'error');
         } finally {
@@ -198,6 +237,7 @@
     }
 
     resetFamilyOptions();
-    setFamilyAvailability(false);
+    setSignupAvailability(false);
+    setFamilySelectionAvailability(false);
     loadFamilyOptions();
 })();
