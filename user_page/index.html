@@ -55,6 +55,20 @@
    </main>
  </div>
 
+ <div class="modal-overlay" id="recitalModalOverlay" aria-hidden="true">
+   <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="recitalModalTitle">
+     <div class="modal-header">
+       <h2 id="recitalModalTitle">Recital Details</h2>
+       <button type="button" class="modal-close" id="recitalModalClose" aria-label="Close details">×</button>
+     </div>
+     <p class="modal-subtitle" id="recitalModalSubtitle"></p>
+     <div class="modal-body">
+       <p class="modal-empty" id="recitalModalEmpty">No seats found for this recital.</p>
+       <ul class="modal-seat-list" id="recitalModalSeats"></ul>
+     </div>
+   </div>
+ </div>
+
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  <script src="supabase.config.js"></script>
  <script src="script.js"></script>

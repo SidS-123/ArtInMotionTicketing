@@ -10,6 +10,13 @@ const dashboardParentsEl = document.getElementById("dashboardParents");
 const childrenGridEl = document.getElementById("childrenGrid");
 const freeTicketsEl = document.getElementById("freeTickets");
 const recitalListEl = document.getElementById("recitalList");
+const recitalRowsEl = document.getElementById("recitalRows");
+const recitalModalOverlay = document.getElementById("recitalModalOverlay");
+const recitalModalClose = document.getElementById("recitalModalClose");
+const recitalModalTitle = document.getElementById("recitalModalTitle");
+const recitalModalSubtitle = document.getElementById("recitalModalSubtitle");
+const recitalModalSeats = document.getElementById("recitalModalSeats");
+const recitalModalEmpty = document.getElementById("recitalModalEmpty");
 
 function safeParseJSON(value) {
   try {
@@ -18,6 +25,63 @@ function safeParseJSON(value) {
     return null;
   }
 }
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return "";
+  const [h, m] = String(timeStr).split(":");
+  const date = new Date();
+  date.setHours(Number(h || 0), Number(m || 0), 0, 0);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function getRecitalDisplayName(name) {
+  const raw = String(name || "").trim();
+  if (!raw) return "Recital";
+
+  const match = raw.match(/^(.+?)\s*-\s*\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}\s*(AM|PM)\s*$/i);
+  if (match && match[1]) {
+    const cleaned = match[1].trim();
+    return cleaned || raw;
+  }
+
+  return raw;
+}
+
+function buildSeatLabel(seat) {
+  const section = String(seat.section || "").trim();
+  const number = seat.number == null ? "" : String(seat.number).trim();
+  const row = seat.row == null ? "" : String(seat.row).trim();
+  if (!section || !number) return "";
+  return row ? `${section}-${number} #${row}` : `${section}-${number}`;
+}
+
+function seatSort(a, b) {
+  const sectionA = String(a.section || "").toLowerCase();
+  const sectionB = String(b.section || "").toLowerCase();
+  if (sectionA !== sectionB) return sectionA.localeCompare(sectionB);
+  const numberA = Number(a.number || 0);
+  const numberB = Number(b.number || 0);
+  if (numberA !== numberB) return numberA - numberB;
+  const rowA = Number(a.row || 0);
+  const rowB = Number(b.row || 0);
+  return rowA - rowB;
+}
+
+const recitalState = {
+  recitalsById: new Map()
+};
 
 const cachedUser = safeParseJSON(localStorage.getItem("aim_user") || "");
 const urlParams = new URLSearchParams(window.location.search);
@@ -139,7 +203,7 @@ async function loadTicketsAndRecitals(familyAccountId) {
         .single(),
       supabaseClient
         .from("ticket")
-        .select("recital_id,recital(name)")
+        .select("recital_id,recital(id,name,day,time),seat(section,row,number)")
         .eq("family_account_id", familyAccountId)
     ]);
 
@@ -147,13 +211,60 @@ async function loadTicketsAndRecitals(familyAccountId) {
   if (ticketError) throw ticketError;
 
   const recitalNames = new Set();
+  const recitalsMap = new Map();
+
   (tickets || []).forEach((ticket) => {
-    if (ticket.recital?.name) recitalNames.add(ticket.recital.name);
+    const recitalId = ticket.recital_id || ticket.recital?.id;
+    if (!recitalId) return;
+
+    const recitalInfo = ticket.recital || {};
+    if (!recitalsMap.has(recitalId)) {
+      recitalsMap.set(recitalId, {
+        recital: {
+          id: recitalId,
+          name: recitalInfo.name || "Recital",
+          day: recitalInfo.day || null,
+          time: recitalInfo.time || null
+        },
+        seats: []
+      });
+    }
+
+    if (recitalInfo?.name) recitalNames.add(recitalInfo.name);
+
+    const seat = ticket.seat;
+    if (seat && seat.section && seat.number != null) {
+      recitalsMap.get(recitalId).seats.push({
+        section: seat.section,
+        row: seat.row,
+        number: seat.number
+      });
+    }
+  });
+
+  const recitals = Array.from(recitalsMap.values()).map((entry) => {
+    const uniqueSeats = new Map();
+    entry.seats.forEach((seat) => {
+      const key = `${seat.section}|${seat.row ?? ""}|${seat.number}`;
+      uniqueSeats.set(key, seat);
+    });
+    const seats = Array.from(uniqueSeats.values()).sort(seatSort).map(buildSeatLabel);
+    return {
+      ...entry.recital,
+      seats
+    };
+  });
+
+  recitals.sort((a, b) => {
+    const dayDiff = String(a.day || "").localeCompare(String(b.day || ""));
+    if (dayDiff !== 0) return dayDiff;
+    return String(a.time || "").localeCompare(String(b.time || ""));
   });
 
   return {
     freeTickets: familyRow?.free_tickets_balance ?? 0,
-    recitalNames: Array.from(recitalNames)
+    recitalNames: Array.from(recitalNames),
+    recitals
   };
 }
 
@@ -243,8 +354,84 @@ function renderTickets({ freeTickets, recitalNames }) {
   });
 }
 
+function renderRecitals(recitals) {
+  if (!recitalRowsEl) return;
+  recitalRowsEl.innerHTML = "";
+  recitalState.recitalsById = new Map();
+
+  if (!recitals.length) {
+    const empty = document.createElement("p");
+    empty.className = "recital-empty";
+    empty.textContent = "No recitals booked yet.";
+    recitalRowsEl.appendChild(empty);
+    return;
+  }
+
+  recitals.forEach((recital) => {
+    recitalState.recitalsById.set(String(recital.id), recital);
+
+    const row = document.createElement("div");
+    row.className = "recital-row";
+
+    const name = document.createElement("span");
+    name.textContent = getRecitalDisplayName(recital.name);
+
+    const date = document.createElement("span");
+    date.textContent = formatDate(recital.day);
+
+    const time = document.createElement("span");
+    time.textContent = formatTime(recital.time);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "recital-details-btn";
+    button.textContent = "Details";
+    button.dataset.recitalId = String(recital.id);
+
+    row.append(name, date, time, button);
+    recitalRowsEl.appendChild(row);
+  });
+}
+
+function openRecitalModal(recitalId) {
+  if (!recitalModalOverlay) return;
+  const recital = recitalState.recitalsById.get(String(recitalId));
+  if (!recital) return;
+
+  if (recitalModalTitle) {
+    const recitalName = getRecitalDisplayName(recital.name);
+    recitalModalTitle.textContent = recitalName || "Recital Details";
+  }
+  if (recitalModalSubtitle) {
+    const subtitleParts = [formatDate(recital.day), formatTime(recital.time)].filter(Boolean);
+    recitalModalSubtitle.textContent = subtitleParts.join(" · ");
+  }
+
+  if (recitalModalSeats) {
+    recitalModalSeats.innerHTML = "";
+    (recital.seats || []).forEach((seatLabel) => {
+      const item = document.createElement("li");
+      item.textContent = seatLabel;
+      recitalModalSeats.appendChild(item);
+    });
+  }
+
+  if (recitalModalEmpty) {
+    recitalModalEmpty.style.display = recital.seats?.length ? "none" : "block";
+  }
+
+  recitalModalOverlay.classList.add("is-open");
+  recitalModalOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeRecitalModal() {
+  if (!recitalModalOverlay) return;
+  recitalModalOverlay.classList.remove("is-open");
+  recitalModalOverlay.setAttribute("aria-hidden", "true");
+}
+
 async function initAccountPage(profile) {
-  if (!dashboardFamilyNameEl && !childrenGridEl && !recitalListEl) return;
+  if (!dashboardFamilyNameEl && !childrenGridEl && !recitalListEl && !recitalRowsEl) return;
 
   const email = profile?.email || cachedUser?.email || paramUser?.email;
   if (!email) return;
@@ -260,6 +447,7 @@ async function initAccountPage(profile) {
 
   const tickets = await loadTicketsAndRecitals(familyAccountId);
   renderTickets(tickets);
+  renderRecitals(tickets.recitals || []);
 }
 
 async function init() {
@@ -271,6 +459,29 @@ async function init() {
   try {
     const profile = await loadUserProfile();
     await initAccountPage(profile);
+    if (recitalRowsEl) {
+      recitalRowsEl.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (!target.classList.contains("recital-details-btn")) return;
+        const recitalId = target.dataset.recitalId;
+        if (recitalId) openRecitalModal(recitalId);
+      });
+    }
+
+    if (recitalModalOverlay) {
+      recitalModalOverlay.addEventListener("click", (event) => {
+        if (event.target === recitalModalOverlay) closeRecitalModal();
+      });
+    }
+
+    if (recitalModalClose) {
+      recitalModalClose.addEventListener("click", closeRecitalModal);
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeRecitalModal();
+    });
   } catch (error) {
     if (userNameEl && userNameEl.textContent === "Loading...") {
       userNameEl.textContent = "Guest";
