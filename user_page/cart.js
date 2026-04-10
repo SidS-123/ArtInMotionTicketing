@@ -47,6 +47,7 @@ function createEmptyTicketSummary() {
     ticketSubtotal: 0,
     seatIds: {
       reg: [],
+      blue: [],
       lux: []
     },
     pricing: {
@@ -83,6 +84,12 @@ function setCheckoutDisabled(disabled) {
   checkoutBtn.disabled = Boolean(disabled);
 }
 
+function updateCheckoutAvailability() {
+  const shouldDisable =
+    cartState.isCheckingOut || !cartState.familyAccountId || !hasAnythingToCheckout();
+  setCheckoutDisabled(shouldDisable);
+}
+
 function readIdentityContext() {
   const cachedUser = safeParseJSON(localStorage.getItem("aim_user") || "");
   const urlParams = new URLSearchParams(window.location.search);
@@ -112,6 +119,7 @@ function loadTicketSummaryFromStorage() {
     ticketSubtotal: Number(parsed.totals.ticketSubtotal || 0),
     seatIds: {
       reg: Array.isArray(parsed.seatIds?.reg) ? parsed.seatIds.reg.map(String) : [],
+      blue: Array.isArray(parsed.seatIds?.blue) ? parsed.seatIds.blue.map(String) : [],
       lux: Array.isArray(parsed.seatIds?.lux) ? parsed.seatIds.lux.map(String) : []
     },
     pricing: {
@@ -170,6 +178,7 @@ function renderSummary() {
   subtotalAmountEl.textContent = toMoney(cartState.totals.subtotal);
   taxAmountEl.textContent = toMoney(cartState.totals.tax);
   totalAmountEl.textContent = toMoney(cartState.totals.total);
+  updateCheckoutAvailability();
 }
 
 function updateProductQuantity(productId, action) {
@@ -275,6 +284,38 @@ function renderProducts() {
     card.append(imageBox, nameWrap, controls);
     productsListEl.appendChild(card);
   });
+
+  updateCheckoutAvailability();
+}
+
+async function rollbackFailedCheckout(createdIds) {
+  if (!cartSupabaseClient) return;
+
+  const cleanupErrors = [];
+
+  if (createdIds.purchaseId) {
+    const { error } = await cartSupabaseClient
+      .from("purchaseitem")
+      .delete()
+      .eq("purchase_id", createdIds.purchaseId);
+    if (error) cleanupErrors.push(error.message || "Failed to rollback purchase items.");
+  }
+
+  if (Array.isArray(createdIds.ticketIds) && createdIds.ticketIds.length > 0) {
+    const { error } = await cartSupabaseClient.from("ticket").delete().in("id", createdIds.ticketIds);
+    if (error) cleanupErrors.push(error.message || "Failed to rollback tickets.");
+  }
+
+  if (createdIds.purchaseId) {
+    const { error } = await cartSupabaseClient.from("purchase").delete().eq("id", createdIds.purchaseId);
+    if (error) cleanupErrors.push(error.message || "Failed to rollback purchase.");
+  }
+
+  if (cleanupErrors.length > 0) {
+    throw new Error(
+      `Checkout failed and cleanup was incomplete. ${cleanupErrors.join(" ")}`
+    );
+  }
 }
 
 async function resolveFamilyAccountId(email, paramFamilyAccountId) {
@@ -325,9 +366,10 @@ async function loadFamilyFreeTicketsBalance(familyAccountId) {
 
 function reconcileTicketSummaryWithBalance(freeTicketsBalance) {
   const regularSeatCount = cartState.ticketSummary.seatIds.reg.length;
+  const blueSeatCount = cartState.ticketSummary.seatIds.blue.length;
   const luxurySeatCount = cartState.ticketSummary.seatIds.lux.length;
   const freeTickets = Math.min(Math.max(0, Number(freeTicketsBalance || 0)), regularSeatCount);
-  const regularTickets = Math.max(0, regularSeatCount - freeTickets);
+  const regularTickets = Math.max(0, regularSeatCount - freeTickets) + blueSeatCount;
   const regularAmount = regularTickets * Number(cartState.ticketSummary.pricing.regPrice || 0);
   const luxuryAmount = luxurySeatCount * Number(cartState.ticketSummary.pricing.luxPrice || 0);
 
@@ -403,6 +445,16 @@ function buildTicketRows(familyAccountId, regularTicketTypeId, luxuryTicketTypeI
     });
   });
 
+  cartState.ticketSummary.seatIds.blue.forEach((seatId) => {
+    rows.push({
+      ticket_type_id: regularTicketTypeId,
+      recital_id: recitalId,
+      seat_id: Number(seatId),
+      family_account_id: familyAccountId,
+      dancer_id: null
+    });
+  });
+
   cartState.ticketSummary.seatIds.lux.forEach((seatId) => {
     rows.push({
       ticket_type_id: luxuryTicketTypeId,
@@ -418,23 +470,29 @@ function buildTicketRows(familyAccountId, regularTicketTypeId, luxuryTicketTypeI
 
 function buildTicketPurchaseItems(purchaseId, insertedTickets) {
   const regularSeatIds = new Set(cartState.ticketSummary.seatIds.reg.map((seatId) => Number(seatId)));
+  const blueSeatIds = new Set(cartState.ticketSummary.seatIds.blue.map((seatId) => Number(seatId)));
   const freeRegularCount = Math.min(
     cartState.ticketSummary.freeTickets,
     cartState.ticketSummary.seatIds.reg.length
   );
 
   const regularTickets = [];
+  const blueTickets = [];
   const luxuryTickets = [];
 
   insertedTickets.forEach((ticket) => {
-    if (regularSeatIds.has(Number(ticket.seat_id))) {
+    const seatId = Number(ticket.seat_id);
+    if (regularSeatIds.has(seatId)) {
       regularTickets.push(ticket);
+    } else if (blueSeatIds.has(seatId)) {
+      blueTickets.push(ticket);
     } else {
       luxuryTickets.push(ticket);
     }
   });
 
   regularTickets.sort((a, b) => Number(a.seat_id) - Number(b.seat_id));
+  blueTickets.sort((a, b) => Number(a.seat_id) - Number(b.seat_id));
   luxuryTickets.sort((a, b) => Number(a.seat_id) - Number(b.seat_id));
 
   const purchaseItems = [];
@@ -454,6 +512,15 @@ function buildTicketPurchaseItems(purchaseId, insertedTickets) {
       item_type: "ticket",
       reference_id: ticket.id,
       price: Number(cartState.ticketSummary.pricing.luxPrice || 0)
+    });
+  });
+
+  blueTickets.forEach((ticket) => {
+    purchaseItems.push({
+      purchase_id: purchaseId,
+      item_type: "ticket",
+      reference_id: ticket.id,
+      price: Number(cartState.ticketSummary.pricing.regPrice || 0)
     });
   });
 
@@ -478,7 +545,9 @@ function clearProductSelections() {
 
 function hasAnythingToCheckout() {
   const hasTickets =
-    cartState.ticketSummary.seatIds.reg.length > 0 || cartState.ticketSummary.seatIds.lux.length > 0;
+    cartState.ticketSummary.seatIds.reg.length > 0 ||
+    cartState.ticketSummary.seatIds.blue.length > 0 ||
+    cartState.ticketSummary.seatIds.lux.length > 0;
   const hasProducts = cartState.products.some((product) => product.inCartQty > 0);
   return hasTickets || hasProducts;
 }
@@ -503,11 +572,18 @@ async function handleCheckout() {
   }
 
   const hasTickets =
-    cartState.ticketSummary.seatIds.reg.length > 0 || cartState.ticketSummary.seatIds.lux.length > 0;
+    cartState.ticketSummary.seatIds.reg.length > 0 ||
+    cartState.ticketSummary.seatIds.blue.length > 0 ||
+    cartState.ticketSummary.seatIds.lux.length > 0;
 
   cartState.isCheckingOut = true;
-  setCheckoutDisabled(true);
+  updateCheckoutAvailability();
   setStatus("Saving your cart to the database...", "info");
+
+  const createdIds = {
+    purchaseId: null,
+    ticketIds: []
+  };
 
   try {
     const currentFreeTicketsBalance = await loadFamilyFreeTicketsBalance(cartState.familyAccountId);
@@ -523,7 +599,11 @@ async function handleCheckout() {
       regularTicketTypeId = resolvedIds.regularTicketTypeId;
       luxuryTicketTypeId = resolvedIds.luxuryTicketTypeId;
 
-      if (cartState.ticketSummary.seatIds.reg.length > 0 && !regularTicketTypeId) {
+      if (
+        (cartState.ticketSummary.seatIds.reg.length > 0 ||
+          cartState.ticketSummary.seatIds.blue.length > 0) &&
+        !regularTicketTypeId
+      ) {
         throw new Error("Regular ticket type is missing.");
       }
 
@@ -544,6 +624,7 @@ async function handleCheckout() {
     if (purchaseError || !purchaseRow) {
       throw purchaseError || new Error("Failed to create purchase.");
     }
+    createdIds.purchaseId = purchaseRow.id;
 
     let insertedTickets = [];
     if (hasTickets) {
@@ -561,6 +642,7 @@ async function handleCheckout() {
         throw ticketError;
       }
       insertedTickets = ticketData || [];
+      createdIds.ticketIds = insertedTickets.map((ticket) => ticket.id);
     }
 
     const purchaseItems = [
@@ -598,6 +680,14 @@ async function handleCheckout() {
     clearProductSelections();
     setStatus("Cart saved to the database.", "success");
   } catch (error) {
+    try {
+      await rollbackFailedCheckout(createdIds);
+    } catch (rollbackError) {
+      console.error("Checkout rollback failed:", rollbackError);
+      setStatus(rollbackError?.message || "Checkout failed and rollback was incomplete.", "error");
+      return;
+    }
+
     console.error("Cart checkout failed:", error);
     if (String(error?.message || "").toLowerCase().includes("duplicate")) {
       setStatus("One or more selected seats are no longer available.", "error");
@@ -606,14 +696,14 @@ async function handleCheckout() {
     }
   } finally {
     cartState.isCheckingOut = false;
-    setCheckoutDisabled(!cartState.familyAccountId);
+    updateCheckoutAvailability();
   }
 }
 
 async function initCartPage() {
   loadTicketSummaryFromStorage();
   renderSummary();
-  setCheckoutDisabled(true);
+  updateCheckoutAvailability();
 
   if (!cartSupabaseClient || !productsListEl) {
     setStatus("Missing Supabase config.", "error");
@@ -641,7 +731,7 @@ async function initCartPage() {
     console.error("Cart page init failed:", error);
     setStatus("Failed to load cart products from the database.", "error");
   } finally {
-    setCheckoutDisabled(!cartState.familyAccountId);
+    updateCheckoutAvailability();
   }
 }
 
