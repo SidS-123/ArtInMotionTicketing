@@ -1,5 +1,5 @@
 -- Writes data into DB:
--- 1) finds John Guy's family_account_id
+-- 1) finds John Guy Smith's family_account_id (by email)
 -- 2) creates two recital rows if missing
 -- 3) creates Emma/Noah dancers if missing
 -- 4) links both dancers to both recitals via recital_ids
@@ -7,6 +7,7 @@
 
 DO $$
 DECLARE
+  v_user_email text := 'john.guy.smith@example.com';
   v_family_account_id integer;
   v_family_match_count integer;
   v_recital_may_id integer;
@@ -15,14 +16,13 @@ BEGIN
   SELECT COUNT(DISTINCT u.family_account_id), MIN(u.family_account_id)
   INTO v_family_match_count, v_family_account_id
   FROM users u
-  WHERE LOWER(TRIM(COALESCE(u.first_name, ''))) = 'john'
-    AND LOWER(TRIM(COALESCE(u.last_name, ''))) = 'guy'
+  WHERE LOWER(TRIM(COALESCE(u.email, ''))) = LOWER(TRIM(v_user_email))
     AND u.family_account_id IS NOT NULL;
 
   IF v_family_match_count = 0 THEN
-    RAISE EXCEPTION 'No family_account_id found for user John Guy.';
+    RAISE EXCEPTION 'No family_account_id found for email %.', v_user_email;
   ELSIF v_family_match_count > 1 THEN
-    RAISE EXCEPTION 'Multiple family_account_id values found for John Guy.';
+    RAISE EXCEPTION 'Multiple family_account_id values found for email %.', v_user_email;
   END IF;
 
   INSERT INTO recital (name, day, time, venue)
@@ -101,8 +101,14 @@ BEGIN
 END $$;
 
 -- Quick verify (read-only output after writes)
+SELECT COUNT(*)::int AS recital_count FROM recital;
+
 SELECT d.id, d.family_account_id, d.first_name, d.last_name, d.recital_ids
 FROM dancer d
-WHERE LOWER(TRIM(COALESCE(d.first_name, ''))) IN ('emma', 'noah')
-  AND LOWER(TRIM(COALESCE(d.last_name, ''))) = 'guy'
+WHERE d.family_account_id = (
+  SELECT MIN(u.family_account_id)
+  FROM users u
+  WHERE LOWER(TRIM(COALESCE(u.email, ''))) = LOWER(TRIM('john.guy.smith@example.com'))
+    AND u.family_account_id IS NOT NULL
+)
 ORDER BY d.first_name, d.id;
