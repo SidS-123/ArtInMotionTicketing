@@ -15,6 +15,7 @@ const redeemableCount = document.getElementById("redeemableCount");
 const redeemableWarning = document.getElementById("redeemableWarning");
 const regularCount = document.getElementById("regularCount");
 const luxuryCount = document.getElementById("luxuryCount");
+const blueCount = document.getElementById("blueCount");
 const totalAmount = document.getElementById("totalAmount");
 const selectedSeatsEl = document.getElementById("selectedSeats");
 const addToCartBtn = document.getElementById("addToCartBtn");
@@ -112,6 +113,15 @@ function decorateVisualSeats(rawSeats) {
     totalsByLabel.set(label, (totalsByLabel.get(label) || 0) + 1);
   });
 
+  const resolveTicketType = (seatType) => {
+    const normalized = String(seatType || "").trim().toLowerCase();
+    if (normalized === "lux" || normalized === "luxury" || normalized.includes("lux")) return "lux";
+    if (normalized === "blue" || normalized === "blu" || normalized.includes("blue")) return "blue";
+    return "reg";
+  };
+
+  const hasBlueId = (seatIdLabel) => String(seatIdLabel || "").toUpperCase().includes("BLUE");
+
   return rawSeats
     .map((seat, index) => {
       const parsed = parseVisualSeatId(seat.id);
@@ -133,7 +143,7 @@ function decorateVisualSeats(rawSeats) {
         duplicateCount,
         dbRow,
         dbKey: buildSeatIdentityKey(parsed.section, dbRow, parsed.number),
-        ticketType: seat.type === "lux" ? "lux" : "reg"
+        ticketType: hasBlueId(seat.id) ? "blue" : resolveTicketType(seat.type)
       };
     })
     .filter(Boolean);
@@ -154,15 +164,20 @@ function updateSummary() {
   const selectedSeats = [...state.selectedSeatMetaById.values()];
   const regularSelected = selectedSeats.filter((seat) => seat.ticketType === "reg").length;
   const luxurySelected = selectedSeats.filter((seat) => seat.ticketType === "lux").length;
+  const blueSelected = selectedSeats.filter((seat) => seat.ticketType === "blue").length;
   const freeTicketsUsed = Math.min(state.freeTicketsBalance, regularSelected);
   const redeemableRemaining = Math.max(0, state.freeTicketsBalance - regularSelected);
   const chargedRegularCount = Math.max(0, regularSelected - freeTicketsUsed);
-  const total = chargedRegularCount * state.pricing.reg + luxurySelected * state.pricing.lux;
+  const chargedBlueCount = blueSelected;
+  const total =
+    (chargedRegularCount + chargedBlueCount) * state.pricing.reg +
+    luxurySelected * state.pricing.lux;
 
   redeemableCount.textContent = String(redeemableRemaining);
   redeemableWarning.hidden = redeemableRemaining !== 0;
   regularCount.textContent = String(regularSelected);
   luxuryCount.textContent = String(luxurySelected);
+  if (blueCount) blueCount.textContent = String(blueSelected);
   ticketsLeftCount.textContent = String(Math.max(0, state.availableSeatCount - selectedSeats.length));
   totalAmount.textContent = formatMoney(total);
   selectedSeatsEl.textContent = getSelectedSeatLabels().join(", ") || "None";
@@ -448,8 +463,11 @@ function restoreSelectionForRecital(recitalId) {
   const luxIds = Array.isArray(storedCart.seatIds?.lux)
     ? storedCart.seatIds.lux.map(String)
     : [];
+  const blueIds = Array.isArray(storedCart.seatIds?.blue)
+    ? storedCart.seatIds.blue.map(String)
+    : [];
 
-  setSelectedState([...regIds, ...luxIds]);
+  setSelectedState([...new Set([...regIds, ...luxIds, ...blueIds])]);
 }
 
 async function refreshRecital(recitalId) {
@@ -476,12 +494,16 @@ function buildCartPayload() {
   const regularSeatIds = selectedSeats
     .filter((seat) => seat.ticketType === "reg")
     .map((seat) => Number(seat.seatId));
+  const blueSeatIds = selectedSeats
+    .filter((seat) => seat.ticketType === "blue")
+    .map((seat) => Number(seat.seatId));
   const luxurySeatIds = selectedSeats
     .filter((seat) => seat.ticketType === "lux")
     .map((seat) => Number(seat.seatId));
-
   const freeTickets = Math.min(state.freeTicketsBalance, regularSeatIds.length);
-  const regularTickets = Math.max(0, regularSeatIds.length - freeTickets);
+  const paidRegularTickets = Math.max(0, regularSeatIds.length - freeTickets);
+  const blueTickets = blueSeatIds.length;
+  const regularTickets = paidRegularTickets + blueTickets;
   const regularAmount = regularTickets * state.pricing.reg;
   const luxuryAmount = luxurySeatIds.length * state.pricing.lux;
 
@@ -491,6 +513,7 @@ function buildCartPayload() {
     recitalName: state.currentRecitalName,
     seatIds: {
       reg: regularSeatIds,
+      blue: blueSeatIds,
       lux: luxurySeatIds
     },
     selectedSeats: selectedSeats.map((seat) => ({
@@ -507,6 +530,7 @@ function buildCartPayload() {
     totals: {
       freeTickets,
       regularTickets,
+      blueTickets,
       luxuryTickets: luxurySeatIds.length,
       regularAmount,
       luxuryAmount,
